@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css">
+<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="http://dev.jtsage.com/cdn/datebox/latest/jqm-datebox.min.css" /> 
+<script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/latest/jqm-datebox.core.min.js"></script>
+<script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/latest/jqm-datebox.mode.calbox.min.js"></script>
+<script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/i18n/jquery.mobile.datebox.i18n.en_US.utf8.js"></script>
+<style>
+.gogo-nowrap
+{
+    white-space:normal;
+}
+
+.ui-icon-custom {
+    background-image: url(./icons/applicants.png)  50% 50% no-repeat; background-size: 24px 22px;
+}
+
+        .ui-li .ui-btn-inner a.ui-link-inherit, .ui-li-static.ui-li {
+            display: block !important;
+            padding: 0.9em 75px 0.9em 15px !important;
+        }
+        div.ui-slider-switch {
+            position: absolute !important;
+            top: 0.5em !important;
+            right: 0.2em !important;
+            width: 6em !important;
+        }
+</style>
+
+</head>
+<body>
+
+<div data-role="page">
+    <div data-role="header"  >
+        <a href="Applicants.html" rel="external" data-icon="grid">Back</a>
+        <h1>Post Job</h1>
+    </div>
+
+    <div data-role="main" class="ui-content">
+        <ul data-role="listview">
+            <li data-role="list-divider">Job Details</li>
+            <li><label for="job_city" class="select">City:</label>
+                <select name="job_city" id="job_city">
+                    <option value="city_1">AB - calgary</option>
+                    <option value="city_2">AB - edmonton</option>
+                    <option value="city_3">AB - ft mcmurray</option>
+                    <option value="city_4">AB - lethbridge</option>
+                    <option value="city_5">AB - medicine hat</option>
+                    <option value="city_6">AB - peace river country</option>
+                    <option value="city_7">AB - red deer</option>
+                    <option value="city_8">BC - cariboo</option>
+                    <option value="city_9">BC - comox valley</option>
+                    <option value="city_10">BC - fraser valley</option>
+                    <option value="city_11">BC - kamloops</option>
+                    <option value="city_12">BC - kelowna / okanagan</option>
+                    <option value="city_13">BC - kootenays</option>
+                    <option value="city_14">BC - nanaimo</option>
+                    <option value="city_15">BC - prince george</option>
+                    <option value="city_16">BC - skeena-bulkley</option>
+                    <option value="city_17">BC - sunshine coast</option>
+                    <option value="city_18">BC - vancouver</option>
+                    <option value="city_19">BC - victoria</option>
+                    <option value="city_20">BC - whistler</option>
+                    <option value="city_21">MB - winnipeg</option>
+                    <option value="city_22">NB - new brunswick</option>
+                    <option value="city_23">NL - st john's</option>
+                    <option value="city_24">NWT - territories</option>
+                    <option value="city_25">NWT - yellowknife</option>
+                    <option value="city_26">NS - halifax</option>
+                    <option value="city_27">ON - barrie</option>
+                    <option value="city_28">ON - belleville</option>
+                    <option value="city_29">ON - brantford-woodstock</option>
+                    <option value="city_30">ON - chatham-kent</option>
+                    <option value="city_31">ON - cornwall</option>
+                    <option value="city_32">ON - guelph</option>
+                    <option value="city_33">ON - hamilton-burlington</option>
+                    <option value="city_34">ON - kingston</option>
+                    <option value="city_35">ON - kitchener-waterloo-cambridge</option>
+                    <option value="city_36">ON - london</option>
+                    <option value="city_37">ON - niagara region</option>
+                    <option value="city_38">ON - ottawa-hull-gatineau</option>
+                    <option value="city_39">ON - owen sound</option>
+                    <option value="city_40">ON - peterborough</option>
+                    <option value="city_41">ON - sarnia</option>
+                    <option value="city_42">ON - sault ste marie</option>
+                    <option value="city_43">ON - sudbury</option>
+                    <option value="city_44">ON - thunder bay</option>
+                    <option value="city_45">ON - toronto</option>
+                    <option value="city_46">ON - windsor</option>
+                    <option value="city_47">PEI - prince edward island</option>
+                    <option value="city_48">QC - montreal</option>
+                    <option value="city_49">QC - quebec city</option>
+                    <option value="city_50">QC - saguenay</option>
+                    <option value="city_51">QC - sherbrooke</option>
+                    <option value="city_52">QC - trois-rivieres</option>
+                    <option value="city_53">SK - regina</option>
+                    <option value="city_54">SK - saskatoon</option>
+                    <option value="city_55">YT - whitehorse</option>
+                </select>
+            </li>
+            <li><label for="job_postalcode">Postal Code:</label>
+                <input type="text" name="job_postalcode" id="job_postalcode" value=""  /></li>
+            <li><label for="job_function" class="select">Function:</label>
+                <select name="job_function" id="job_function">
+                    <option value="job_fn_0">other</option>
+                    <option value="job_fn_1">accounting / finance</option>
+                    <option value="job_fn_2">admin / office</option>
+                    <option value="job_fn_3">arch / engineering</option>
+                    <option value="job_fn_4">art / media / design</option>
+                    <option value="job_fn_5">biotech / science</option>
+                    <option value="job_fn_6">business / mgmt</option>
+                    <option value="job_fn_7">customer service</option>
+                    <option value="job_fn_8">education</option>
+                    <option value="job_fn_9">food / bev / hosp</option>
+                    <option value="job_fn_10">general labor</option>
+                    <option value="job_fn_11">government</option>
+                    <option value="job_fn_12">human resources</option>
+                    <option value="job_fn_13">internet engineers</option>
+                    <option value="job_fn_14">legal / paralegal</option>
+                    <option value="job_fn_15">manufacturing</option>
+                    <option value="job_fn_16">marketing / pr / ad</option>
+                    <option value="job_fn_17">medical / health</option>
+                    <option value="job_fn_18">nonprofit sector</option>
+                    <option value="job_fn_19">real estate</option>
+                    <option value="job_fn_20">retail / wholesale</option>
+                    <option value="job_fn_21">sales / biz dev</option>
+                    <option value="job_fn_22">salon / spa / fitness</option>
+                    <option value="job_fn_23">security</option>
+                    <option value="job_fn_24">skilled trade / craft</option>
+                    <option value="job_fn_25">software / qa / dba</option>
+                    <option value="job_fn_26">systems / network</option>
+                    <option value="job_fn_27">technical support</option>
+                    <option value="job_fn_28">transport</option>
+                    <option value="job_fn_29">tv / film / video</option>
+                    <option value="job_fn_30">web / info design</option>
+                    <option value="job_fn_31">writing / editing</option>
+                </select>
+            </li>
+            <li><label for="job_type" class="select">Type:</label>
+                <select name="job_type" id="job_type">
+                    <option value="job_type_0">Full Time</option>
+                    <option value="job_type_1">Part Time</option>
+                    <option value="job_type_2">Contract</option>
+                    <option value="job_type_3">Casual</option>
+                    <option value="job_type_4">Volunteer</option>
+                    <option value="job_type_5">Seasonal </option>
+                    <option value="job_type_6">Internship</option>
+                    <option value="job_type_7">Graduate</option>
+                </select>
+            </li>
+            <li><label for="job_title">Title:</label>
+                <input type="text" name="job_title" id="job_title" value=""  /></li>
+            <li><label for="job_description">Description:</label>
+                <textarea name="job_description" id="job_description"></textarea>
+            </li>
+            <li data-role="list-divider">Applicant Requirements</li>
+            <li data-role="fieldcontain">
+                        <label for="flip-5">Introduction Video (30 secs)</label>
+                        <select name="flip-5" id="flip-5" data-role="slider" data-theme="c" data-track-theme="a">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                        </select>
+            </li>
+            <li data-role="fieldcontain">
+                        <label for="flip-5">Resume</label>
+                        <select name="flip-5" id="flip-5" data-role="slider" data-theme="c" data-track-theme="a">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                        </select>
+            </li>
+            <li data-role="fieldcontain">
+                        <label for="flip-5">Cover Letter</label>
+                        <select name="flip-5" id="flip-5" data-role="slider" data-theme="c" data-track-theme="a">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                        </select>
+            </li>
+            <li data-role="fieldcontain">
+                        <label for="flip-5">LinkedIn URL</label>
+                        <select name="flip-5" id="flip-5" data-role="slider" data-theme="c" data-track-theme="a">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                        </select>
+            </li>
+            <li data-role="fieldcontain">
+                        <label for="flip-5">Website/Portfolio URL</label>
+                        <select name="flip-5" id="flip-5" data-role="slider" data-theme="c" data-track-theme="a">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                        </select>
+            </li>
+            <li  data-role="list-divider">30 Second Prequalifying Video Qs</li>
+            <li><label for="job_description">Question 1</label>
+                <textarea name="job_description" id="job_description"></textarea>
+            </li>
+            <li><label for="job_description">Question 2</label>
+                <textarea name="job_description" id="job_description"></textarea>
+            </li>
+            <li><label for="job_description">Question 3</label>
+                <textarea name="job_description" id="job_description"></textarea>
+            </li>
+
+            <li data-role="list-divider">Posting Duration</li>
+            <li data-role="fieldcontain"><label for="mydate">Post Date</label>
+            <input name="mydate" id="mydate" type="date" data-role="datebox"
+               data-options='{"mode": "calbox"}'></li>
+            <li><label for="job_function" class="select">Duration:</label>
+                <select name="duration" id="duration">
+                    <option value="7">5 Days for $10</option>
+                    <option value="7">14 Days for $25</option>
+                    <option value="7">30 Days for $40</option>
+                </select>
+            </li>
+            <li><h3 style="display: inline;">Expiry Date</h3>&nbsp;&nbsp;&nbsp;Friday, December 25, 2014</li>
+            <li data-role="fieldcontain">
+                        <label for="flip-5">Show Expiry Date</label>
+                        <select name="flip-5" id="flip-5" data-role="slider" data-theme="c" data-track-theme="a">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                        </select>
+            </li>
+        </ul>
+    </div>
+  <div data-role="navbar">
+    <ul>
+    <li><a href="index.html">Cancel</a></li>
+    <li><a href="index.html">Preview</a></li>
+    </ul>
+  </div>
+
+</div> 
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-resscale=1, maximum-scale=1">
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css">
+<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+  <link href="/hirestream/pink.flag/jplayer.pink.flag.css" rel="stylesheet" type="text/css" />
+ <script type="text/javascript" src="./jQuery.jPlayer.2.6.0/jquery.jplayer.min.js"></script>
+ <script type="text/javascript" src="./jQuery.jPlayer.2.6.0/add-on/jplayer.playlist.min.js"></script>
+
+
+  <script type="text/javascript">
+$(document).ready(function(){
+
+var myPlaylist = new jPlayerPlaylist({
+  jPlayer: "#jquery_jplayer_N",
+  cssSelectorAncestor: "#jp_container_N"
+}, [
+  {
+        title: "1. Introduction",
+        m4v: "http://107.170.154.102/hirestream/video.mp4",
+        ogv: "http://107.170.154.102/hirestream/video.ogv"
+  },
+  {
+        title: "2. What is your biggest strength?",
+        m4v: "http://107.170.154.102/hirestream/video2.mp4",
+        ogv: "http://107.170.154.102/hirestream/video2.ogv"
+  },
+  {
+        title: "3. What is your biggest weakness?",
+        m4v: "http://107.170.154.102/hirestream/video3.mp4",
+        ogv: "http://107.170.154.102/hirestream/video3.ogv"
+  },
+  {
+        title: "4. What are you like working on a team?",
+        m4v: "http://107.170.154.102/hirestream/video4.mp4",
+        ogv: "http://107.170.154.102/hirestream/video4.ogv"
+  }
+], {
+  playlistOptions: {
+    enableRemoveControls: false
+  },
+    size: {
+      width: "300px",
+      height: "240px"
+    },
+  swfPath: "/hirestream/jQuery.jPlayer.2.6.0",
+  solution: "html, flash",
+  supplied: "ogv, m4v",
+  smoothPlayBar: true,
+  keyEnabled: true
+});
+});
+  </script>
+<style>
+div.jp-type-playlist div.jp-playlist a
+{
+  font-weight: normal;
+  font-size: 1.25em;
+  text-shadow: none;
+}
+/*.gogo-nowrap
+{
+    white-space:normal;
+}
+
+.ui-icon-custom {
+    background-image: url(./icons/applicants.png)  50% 50% no-repeat; background-size: 24px 22px;
+}
+
+        .ui-li .ui-btn-inner a.ui-link-inherit, .ui-li-static.ui-li {
+            display: block !important;
+            padding: 0.9em 75px 0.9em 15px !important;
+        }
+        div.ui-slider-switch {
+            position: absolute !important;
+            top: 0.5em !important;
+            right: 0.2em !important;
+            width: 6em !important;
+        }*/
+</style>
+
+</head>
+<body>
+  <div id="ooo"> This is a title </div>
+    <div id="jp_container_N" class="jp-video jp-video-270p">
+      <div class="jp-type-playlist">
+        <div id="jquery_jplayer_N" class="jp-jplayer"></div>
+        <div class="jp-gui">
+          <div class="jp-video-play">
+            <a href="javascript:;" class="jp-video-play-icon" tabindex="1">play</a>
+          </div>
+          <div class="jp-interface">
+            <div class="jp-progress">
+              <div class="jp-seek-bar">
+                <div class="jp-play-bar"></div>
+              </div>
+            </div>
+            <div class="jp-current-time"></div>
+            <div class="jp-duration"></div>
+            <div class="jp-controls-holder">
+              <ul class="jp-controls">
+                <li><a href="javascript:;" class="jp-previous" tabindex="1">previous</a></li>
+                <li><a href="javascript:;" class="jp-play" tabindex="1">play</a></li>
+                <li><a href="javascript:;" class="jp-pause" tabindex="1">pause</a></li>
+                <li><a href="javascript:;" class="jp-next" tabindex="1">next</a></li>
+                <li><a href="javascript:;" class="jp-stop" tabindex="1">stop</a></li>
+              </ul>
+            </div>
+          </div>
+
+        <div class="jp-playlist">
+          <ul>
+            <!-- The method Playlist.displayPlaylist() uses this unordered list -->
+            <li></li>
+          </ul>
+        </div>
+        <div class="jp-no-solution">
+          <span>Update Required</span>
+          To play the media you will need to either update your browser to a recent version or update your <a href="http://get.adobe.com/flashplayer/" target="_blank">Flash plugin</a>.
+        </div>
+      </div>
+    </div>
+
+
+
+
+</body>
+</html>

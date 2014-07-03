@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Bootstrap 101 Template</title>
+
+    <!-- Bootstrap -->
+    <link href="bootstrap-3.2.0-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bootstrap-switch-master/css/bootstrap3/bootstrap-switch.min.css" rel="stylesheet">
+    <link href="bootstrap-datepicker-master/css/datepicker.css" rel="stylesheet">
+
+    <link href="/streamhire/pink.flag/jplayer.pink.flag.css" rel="stylesheet" type="text/css" />
+
+    <link href="/streamhire/style.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+  <nav class="navbar navbar-default navbar-static-top" role="navigation">
+     <div class="navbar-header">
+        <button type="button" class="navbar-toggle text-left" data-toggle="collapse" 
+           data-target="#example-navbar-collapse">
+           Account
+        </button>
+        <button type="button" class="navbar-toggle" data-toggle="collapse" 
+           data-target="#example-navbar-collapse2">
+           Job Search
+        </button>
+     </div>
+     <div class="collapse navbar-collapse" id="example-navbar-collapse">
+        <form>
+                <h3>Register / Login</h3>
+                <div class="form-group">
+                <p>
+            <input type="checkbox" name="my-checkbox" checked>this is some text and
+          </p>
+      </div>
+              <div class="form-group">
+                <input type="email" placeholder="E-mail" class="form-control" />
+              </div>
+              <div class="form-group">
+                <input type="password" placeholder="Password" class="form-control" />
+              </div>
+              <div class="form-group">
+                <button type="button" class="btn btn-default col-xs-offset-4 col-xs-4">Go</button>
+              </div>
+              <div class="clearfix"></div><br />
+              <a href="#" class="pull-right">Reset Password For Email</a><br />
+        </form>
+        <div class="list-group disabled">
+          <a href="#" class="list-group-item disabled">My Jobs</a>
+          <a href="#" class="list-group-item disabled">Posted Jobs</a>
+          <a href="#" class="list-group-item disabled">Profile</a>
+        </div>
+     </div>
+     <div class="navbar-collapse collapse" id="example-navbar-collapse2">
+        <form role="form">
+            <img src="img/logo.png" class="col-xs-12" />
+            <div class="form-group">
+              <input type="text" placeholder="Job Keywords" class="form-control" />
+            </div>
+            <div class="form-group">
+            <div>
+            <div class="form-group">
+            <select name="browse-city" class="form-control">
+              <option value="">City</option>
+            </select>
+            <br />
+            <div>
+            <div class="form-group">
+            <select name="browse-function" class="form-control">
+              <option value="">Function</option>
+            </select>
+            <br />
+            <div>
+            <div class="form-group">
+            <select name="browse-type" class="form-control">
+              <option value="">Type</option>
+            </select>
+            <br /> 
+            <div>
+            <div>
+              <button type="button" class="btn btn-default col-xs-offset-2 col-xs-4 col-md-2">Find a Job</button>
+              <button type="button" class="btn btn-default col-xs-4 col-md-2">Post a Job</
+            </div>
+          </form>
+     </div>
+  </nav>
+
+    <div class="container col-lg-6 col-md-6 col-sm-8 col-xs-12 gogo-center">
+      <div class="row">
+        <div class="col-xs-12 text-center"><h1>My Posted Jobs</h1><br/></div>
+      </div>
+
+      <div class="row">
+        <div class="form-group text-center">
+          <a href="PostJob.html">
+            <button type="submit" class="btn btn-success">
+              <span class="glyphicon glyphicon-pencil"></span>
+              Create New Posting
+            </button>
+          </a>
+        </div>
+      </div>
+      <div class="row">
+        <div class="panel panel-warning">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <span class="glyphicon glyphicon-briefcase"></span>
+              Scheduled
+              <span class="badge pull-right">2</span>
+            </h3>
+          </div>
+          <div class="list-group">
+            <a href="JobReview.html" class="list-group-item">
+              <div class="row gogo-side-padding">
+                <h3>
+                  Bar Servers
+                  <span class="glyphicon glyphicon-chevron-right gogo-selectable-text-color pull-right"></span>
+                </h3>
+                <h4>The Keg Steakhouse & Bar</h4>
+                <h5>Toronto, ON</h5>
+                <p class="gogo-light-text-color">Submitted Tuesday December 26, 2014</p>
+                <div class="pull-right">
+                  <span class="text-center">
+                    <span class="label label-warning gogo-job-stat-label "><span class="glyphicon gogo-icon gogo-icon-new-regular"></span>&nbsp;&nbsp;42</span>
+                  </span>
+                  <span class="text-center">
+                    
+                    <span class="label label-success"><span class="glyphicon glyphicon-ok"></span>&nbsp;&nbsp;42</span>
+                  </span>
+                  <span class="text-center">
+                    <span class="label label-danger"><span class="glyphicon glyphicon-remove"></span>&nbsp;&nbsp;42</span>
+                  </span>
+                </div>
+              </div>
+            </a>
+            <div class="text-center">
+              <ul class="pagination pagination-centered">
+                <li><a href="#">Prev</a></li>
+                <li><a href="#">1</a></li>
+                <li><a href="#">2</a></li>
+                <li><a href="#">3</a></li>
+                <li><a href="#">4</a></li>
+                <li><a href="#">5</a></li>
+                <li><a href="#">Next</a></li>
+              </ul>
+          </div>
+          </div>
+        </div>
+      </div>
+
+      <br /><br /><br />
+      <div class="row">
+        <div class="panel panel-success">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <span class="glyphicon glyphicon-briefcase"></span>
+              Active
+              <span class="badge pull-right">2</span>
+            </h3>
+          </div>
+          <div class="list-group">
+            <a href="JobReview.html" class="list-group-item">
+              <div class="row gogo-side-padding">
+                <h3>
+                  Bar Servers
+                  <span class="glyphicon glyphicon-chevron-right gogo-selectable-text-color pull-right"></span>
+                </h3>
+                <h4>The Keg Steakhouse & Bar</h4>
+                <h5>Toronto, ON</h5>
+                <p class="gogo-light-text-color">Submitted Tuesday December 26, 2014</p>
+                <div class="pull-right">
+                  <span class="text-center">
+                    <span class="label label-warning gogo-job-stat-label "><span class="glyphicon gogo-icon gogo-icon-new-regular"></span>&nbsp;&nbsp;42</span>
+                  </span>
+                  <span class="text-center">
+                    <span class="label label-success"><span class="glyphicon glyphicon-ok"></span>&nbsp;&nbsp;42</span>
+                  </span>
+                  <span class="text-center">
+                    <span class="label label-danger"><span class="glyphicon glyphicon-remove"></span>&nbsp;&nbsp;42</span>
+                  </span>
+                </div>
+              </div>
+            </a>
+            <div class="text-center">
+              <ul class="pagination pagination-centered">
+                <li><a href="#">Prev</a></li>
+                <li><a href="#">1</a></li>
+                <li><a href="#">2</a></li>
+                <li><a href="#">3</a></li>
+                <li><a href="#">4</a></li>
+                <li><a href="#">5</a></li>
+                <li><a href="#">Next</a></li>
+              </ul>
+          </div>
+          </div>
+        </div>
+      </div>
+
+      <br /><br /><br />
+
+      <div class="row">
+        <div class="panel panel-danger">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              <span class="glyphicon glyphicon-briefcase"></span>
+              Expired
+              <span class="badge pull-right">24</span>
+            </h3>
+          </div>
+          <div class="list-group">
+            <a href="JobReview.html" class="list-group-item">
+              <div class="row gogo-side-padding">
+                <h3>
+                  Bar Servers
+                  <span class="glyphicon glyphicon-chevron-right gogo-selectable-text-color pull-right"></span>
+                </h3>
+                <h4>The Keg Steakhouse & Bar</h4>
+                <h5>Toronto, ON</h5>
+                <p class="gogo-light-text-color">Submitted Tuesday December 26, 2014</p>
+                <div class="pull-right">
+                  <span class="text-center">
+                    <span class="label label-warning gogo-job-stat-label "><span class="glyphicon gogo-icon gogo-icon-new-regular"></span>&nbsp;&nbsp;42</span>
+                  </span>
+                  <span class="text-center">
+                    
+                    <span class="label label-success"><span class="glyphicon glyphicon-ok"></span>&nbsp;&nbsp;42</span>
+                  </span>
+                  <span class="text-center">
+                    <span class="label label-danger"><span class="glyphicon glyphicon-remove"></span>&nbsp;&nbsp;42</span>
+                  </span>
+                </div>
+              </div>
+            </a>
+            <div class="text-center">
+              <ul class="pagination pagination-centered">
+                <li><a href="#">Prev</a></li>
+                <li><a href="#">1</a></li>
+                <li><a href="#">2</a></li>
+                <li><a href="#">3</a></li>
+                <li><a href="#">4</a></li>
+                <li><a href="#">5</a></li>
+                <li><a href="#">Next</a></li>
+              </ul>
+          </div>
+          </div>
+        </div>
+      </div>
+   </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="jquery-1.11.1/jquery-1.11.1.min.js"></script>
+    <script src="jquery-ui-1.11.0/jquery-ui.min.js"></script>
+    <script src="bootstrap-3.2.0-dist/js/bootstrap.min.js"></script>
+    <script src="bootstrap-switch-master/js/bootstrap-switch.min.js"></script>
+    <script src="bootstrap-datepicker-master/js/bootstrap-datepicker.js"></script>
+    <script type="text/javascript" src="jQuery.jPlayer.2.6.0/jquery.jplayer.min.js"></script>
+    <script type="text/javascript" src="jQuery.jPlayer.2.6.0/add-on/jplayer.playlist.min.js"></script>
+<script>
+
+$(function() {
+  $('.gogo-expanding-textarea').each(function(){
+   this.addEventListener('keyup', function() {
+      this.style.overflow = 'hidden';
+      this.style.height = 0;
+      this.style.height = this.scrollHeight + 'px';
+  }, false);});
+
+  $("[name='my-checkbox']").bootstrapSwitch();
+
+  $('#sandbox-container .date').datepicker({
+      startDate: "06/27/2014",
+      todayBtn: "linked",
+      todayHighlight: true
+  });
+
+var myPlaylist = new jPlayerPlaylist({
+  jPlayer: "#jquery_jplayer_N",
+  cssSelectorAncestor: "#jp_container_N"
+}, [
+  {
+        title: "1. Introduction",
+        m4v: "http://107.170.154.102/hirestream/video.mp4",
+        ogv: "http://107.170.154.102/hirestream/video.ogv"
+  },
+  {
+        title: "2. What is your biggest strength?",
+        m4v: "http://107.170.154.102/hirestream/video2.mp4",
+        ogv: "http://107.170.154.102/hirestream/video2.ogv"
+  },
+  {
+        title: "3. What is your biggest weakness?",
+        m4v: "http://107.170.154.102/hirestream/video3.mp4",
+        ogv: "http://107.170.154.102/hirestream/video3.ogv"
+  },
+  {
+        title: "4. What are you like working on a team?",
+        m4v: "http://107.170.154.102/hirestream/video4.mp4",
+        ogv: "http://107.170.154.102/hirestream/video4.ogv"
+  }
+], {
+  playlistOptions: {
+    enableRemoveControls: false
+  },
+    size: {
+      width: "300px",
+      height: "240px"
+    },
+  swfPath: "/hirestream/jQuery.jPlayer.2.6.0",
+  solution: "html, flash",
+  supplied: "ogv, m4v",
+  smoothPlayBar: true,
+  keyEnabled: true
+});
+
+});
+
+
+</script>
+  </body>

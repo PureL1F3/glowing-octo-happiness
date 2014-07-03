@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset=”utf-8”> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+<link rel='stylesheet' href="BetterFont.css" />
+
+</head>
+
+<body>
+
+<h3>Anna Vassilovski</h3>
+
+<table>
+<tbody>
+<tr><th colspan="2">Profile</th></tr>
+<tr><td><span class="glyphicon glyphicon-film"></td><td><a href="">Introduction</a></td><tr>
+<tr><td><span class="glyphicon glyphicon-file"></td><td><a href="pdf.pdf">Resume</a></td><tr>
+<tr><td><span class="glyphicon glyphicon-file"></td><td><a href="doc.doc">Cover Letter</a></td><tr>
+<tr><td><span class="glyphicon glyphicon-file"></td><td><a href="docx.docx">Job Application</a></td><tr>
+<td></th>
+<tbody>
+<tbody>
+<tr><th colspan="2">Question Videos</th></tr>
+<tr><td><span class="glyphicon glyphicon-film"></td><td><a href="">What is your biggest strength</a></td><tr>
+<tr><td><span class="glyphicon glyphicon-film"></td><td><a href="">What is your biggest weakness</a></td><tr>
+<tr><td><span class="glyphicon glyphicon-film"></td><td><a href="">What are you like working in a team?</a></td><tr>
+<tr><td><span class="glyphicon glyphicon-film"></td><td><a href="">Do you have any questions for us?</a></td><tr>
+</tbody>
+</table>
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+</body>
+
+</html>

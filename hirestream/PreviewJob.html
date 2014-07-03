@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css">
+<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+<style>
+.gogo-nowrap
+{
+    white-space:normal;
+}
+
+.ui-icon-custom {
+    background-image: url(./icons/applicants.png)  50% 50% no-repeat; background-size: 24px 22px;
+}
+
+        .ui-li .ui-btn-inner a.ui-link-inherit, .ui-li-static.ui-li {
+            display: block !important;
+            padding: 0.9em 75px 0.9em 15px !important;
+        }
+        div.ui-slider-switch {
+            position: absolute !important;
+            top: 0.5em !important;
+            right: 0.2em !important;
+            width: 6em !important;
+        }
+</style>
+
+</head>
+<body>
+
+<div data-role="page">
+    <div data-role="header"  >
+        <a href="Applicants.html" rel="external" data-icon="grid">Back</a>
+        <h1>admin / office</h1>
+    </div>
+
+    <div data-role="main" class="ui-content">
+        <ul data-role="listview">
+            <li data-icon="false"><a style="white-space:normal;">
+                <h3>Part-Time Executive Assistant</h3>
+                <p>Posted 4h ago&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;Expires in 10d 14h</p></a>
+            </li>
+        </ul>
+    </div>
+      <div data-role="navbar">
+        <ul>
+        <li><a href="index.html">Save</a></li>
+        <li><a href="#">&nbsp;</a></li>
+        <li><a href="index.html">Share</a></li>
+        </ul>
+      </div>
+    <div data-role="main" class="ui-content">
+        <p data-role="content">
+            We are searching for a highly-organized executive assistant to help us grow our company by developing and maintaining orderly, efficient systems to correspond with clients and affiliates in ways that convey warmth, care, and support. 
+            <br /><br />
+            For over 12 years we have offered training, coaching and mediation services to help create workplaces where people can do their best work, feel respected and appreciated, and collaborate smoothly and effectively with their colleagues. We help our clients produce useful and meaningful results that contribute positively to the world and their communities.
+            <br /><br />
+            If you feel you are a fit for this position, do not reply here, but go to the following link to learn more about it and how to apply: http://www.coachglenda.com/2014/06/im-hiring/ 
+            <br /><br />
+            Applications will be reviewed on July 15, 2014
+            Suitable applicants will be contacted for phone interviews later that week, with in-person interviews to happen the week of July 21
+            Estimated start date: July 28
+        </p>
+        <ul data-role="listview">
+            <li data-role="list-divider">Applicant Requirements</li>
+            <li data-icon="false" style="white-space:normal;"><img src="glyphicons_free/glyphicons/png/glyphicons_008_film.png" class="ui-li-icon"/><h3>Introduction Video</h3>Please record a 30 second video introducing yourself and why you are applying for this position. You can upload a video or record from your phone's camera.<br /><input type="file" name="datafile"></li>
+            <li data-icon="false"><img src="glyphicons_free/glyphicons/png/glyphicons_030_pencil.png" class="ui-li-icon"/><label for="name">Name:</label>
+                <input type="text" name="name" id="name" value=""  /></li>
+            <li data-icon="false"><img src="glyphicons_free/glyphicons/png/glyphicons_010_envelope.png" class="ui-li-icon"/><label for="email">Email:</label>
+                <input type="text" name="email" id="email" value=""  /></li>
+            <li data-icon="false"><img src="glyphicons_free/glyphicons/png/glyphicons_441_phone_alt.png" class="ui-li-icon"/><label for="phone">Phone #:</label>
+                <input type="text" name="phone" id="phone" value=""  /></li>
+            </li>
+            <li data-icon="false"><img src="glyphicons_free/glyphicons_social/png/glyphicons_social_17_linked_in.png" class="ui-li-icon"/><label for="linkedin">LinkedIn URL:</label>
+                <input type="text" name="linkedin" id="linkedin" value=""  /></li>
+            <li data-icon="false"><img src="glyphicons_free/glyphicons/png/glyphicons_144_folder_open.png" class="ui-li-icon"/><label for="website">Website/Portfolio URL:</label>
+                <input type="text" name="website" id="website" value=""  /></li>
+            <li data-icon="false"><img src="glyphicons_free/glyphicons/png/glyphicons_030_pencil.png" class="ui-li-icon"/><label for="resume">Resume:</label>
+                <textarea name="resume" id="resume"></textarea>
+            </li>
+            <li data-icon="false"><img src="glyphicons_free/glyphicons/png/glyphicons_030_pencil.png" class="ui-li-icon"/><label for="cover_letter">Cover Letter:</label>
+                <textarea name="cover_letter" id="cover_letter"></textarea>
+            </li>
+            <li data-role="list-divider">30 Second Prequalifying Video Qs</li>
+            <li data-icon="false" style="white-space:normal;">Please provide a 30 second video answering the following question(s). You can upload a video or record from your phone's camera.</li>
+            <li data-icon="false" style="white-space:normal;"><img src="glyphicons_free/glyphicons/png/glyphicons_008_film.png" class="ui-li-icon"/><h3>Question 1</h3>Please record a 30 second video introducing yourself and why you are applying for this position.<br /><input type="file" name="datafile"></li>
+            <li data-icon="false" style="white-space:normal;"><img src="glyphicons_free/glyphicons/png/glyphicons_008_film.png" class="ui-li-icon"/><h3>Question 2</h3>Please record a 30 second video introducing yourself and why you are applying for this position.<br /><input type="file" name="datafile"></li>
+            <li data-icon="false" style="white-space:normal;"><img src="glyphicons_free/glyphicons/png/glyphicons_008_film.png" class="ui-li-icon"/><h3>Question 3</h3>Please record a 30 second video introducing yourself and why you are applying for this position.<br /><input type="file" name="datafile"></li>
+        </ul>
+    </div>
+  <div data-role="navbar">
+    <ul>
+    <li><a href="index.html">Edit</a></li>
+    <li><a href="index.html">Post</a></li>
+    </ul>
+  </div>
+
+</div> 
+</body>
+</html>

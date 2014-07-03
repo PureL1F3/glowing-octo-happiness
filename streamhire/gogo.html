@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html ng-app="streamhire">
+    <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>StreamHire</title>
+
+        <link href="bootstrap-3.2.0-dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/streamhire/style.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+
+        <div  class="container col-lg-6 col-md-6 col-sm-8 col-xs-12 gogo-center" ng-controller="JobHighlevelController">
+          <div class="row">
+            <p>
+              <br /><br />
+              <a href="PostedJobs.html">&larr; Back To My Posted Jobs</a>
+            </p>
+          </div>
+
+          <div class="row gogo-side-padding">
+            <h3>
+              {{job.title}}
+              <span class="label label-success pull-right">{{job.status}}</span>
+            </h3>
+            <h4>{{job.employer}}</h4>
+            <h5>{{job.type}} - {{job.func}}<h5>
+            <h5>{{job.city}}</h5>
+            <p class="gogo-light-text-color">Submitted {{job.submitted | date:'fullDate'}}</p>
+          </div>  
+
+          <div class="row">
+            <div class="panel-group" id="accordion">
+              <div class="panel gogo-section-title-color">
+                  <div class="panel-heading  ">
+                    <h3 class="panel-title"> 
+                      <a href="#">
+                        <span class="glyphicon glyphicon-briefcase"></span>&nbsp;Job Post
+                        <span class="pull-right">
+                          <span class="glyphicon glyphicon-chevron-right" style="vertical-align: bottom;;"></span>
+                        </span>
+                      </a>
+                    </h3>
+                  </div>
+              </div>
+
+              <div class="panel panel-info">
+                <div class="panel-heading">
+                  <h3 class="panel-title"> 
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapsePostDuration" ng-click="hitSection('durationsection')">
+                      <span class="glyphicon glyphicon-time"></span>&nbsp;Post Duration
+                        <span class="pull-right">
+                            <span class="glyphicon glyphicon-plus-sign" style="vertical-align: bottom;;" ng-hide="showOpen('durationsection')"></span>
+                            <span class="glyphicon glyphicon-minus-sign" style="vertical-align: bottom;;" ng-show="showOpen('durationsection')"></span>
+                        </span>
+                    </a>
+                  </h3>
+                </div>
+                <ul id="collapsePostDuration" class="panel-collapse collapse list-group">
+                  <li class="list-group-item gogo-side-padding">
+                    <br />
+                    <div class="form-group">
+                      <p>
+                        <b>Post Date</b>
+                        <span class="pull-right">{{job.postdate | date:'fullDate'}}</span>
+                      </p>
+                      <p>
+                        <b>Expiry Date</b>
+                        <span class="pull-right">{{job.expirydate | date:'fullDate'}}</span>
+                      </p>
+                    </div>
+                    <div class="form-group text-center">
+                      <button type="button" class="btn btn-danger">Expire Post</button>
+                    </div>
+                  </li>
+                  <li class="list-group-item gogo-side-padding">
+                    <form name="extendjobpost">
+                      <br />
+                      <h3 class="text-center">Extend Post</h3>
+                      <div class="form-group">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                        <label>Extend Duration</label>
+                        <select class="form-control" ng-model="extendpost.optionid" ng-options="joboptions.id as joboption.name for joboption in joboptions" required>
+                        </select>
+                      </div>
+                      <div class="form-group gogo-danger-color">
+                        <p>
+                          <b>New Expiry Date</b>
+                          <span class="pull-right"></span>
+                        </p>
+                      </div>
+                      <div class="form-group">
+                        <span class="glyphicon glyphicon-lock"></span>
+                        <label for="job-title">Promo Code</label>
+                        <input type="text" class="form-control" maxlength="20"ng-model="extendpost.promo"/>
+                      </div>
+                      <div class="form-group text-center">
+                        <button type="submit" class="btn btn-danger">Extend Post</button>
+                      </div>
+                    </form>
+                  </li>
+                </ul>
+              </div>
+
+
+              <div class="panel panel-warning">
+                <div class="panel-heading">
+                  <h3 class="panel-title"> 
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" ng-click="hitSection('newpplsection')" >
+                      <span class="glyphicon gogo-icon gogo-icon-new"></span>&nbsp;Candidates
+                      <span class="pull-right">
+                        <span class="badge">{{job.candidates.newones.length}}</span>
+                        <span ng-show="candidatesNewExpanderShow()">
+                          <span class="glyphicon glyphicon-plus-sign" style="vertical-align: bottom;;" ng-hide="showOpen('newpplsection')"></span>
+                          <span class="glyphicon glyphicon-minus-sign" style="vertical-align: bottom;;" ng-show="showOpen('newpplsection')"></span>
+                        </span>
+                      </span>
+                    </a>
+                  </h3>
+                </div>
+                <div id="collapseOne" class="panel-collapse collapse list-group bg-warning">
+                <a href="JobApplicationReview.html" class="list-group-item" ng-repeat="candidate in job.candidates.newones">
+                  <div>
+                    <h4 class="list-group-item-heading gogo-selectable-text-color">
+                      <span class="glyphicon gogo-icon gogo-icon-new gogo-new-color"></span>
+                      {{candidate.name}}
+                      <span class="glyphicon glyphicon-chevron-right pull-right gogo-selectable-text-color"></span></h4>
+                    <small class="list-group-item-text gogo-light-text-color">Submitted {{candidate.submitted | date:'fullDate'}}</small>
+                  </div>
+                </a>
+                </div>
+              </div>
+              
+              <div class="panel panel-success">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">
+                      <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo"  ng-click="hitSection('yespplsection')">
+                        <span class="glyphicon glyphicon-ok"></span>&nbsp;Candidates
+                        <span class="pull-right">
+                          <span class="badge">{{job.candidates.yesones.length}}</span>
+                          <span ng-show="candidatesYesExpanderShow()">
+                            <span class="glyphicon glyphicon-plus-sign" style="vertical-align: bottom;;" ng-hide="showOpen('yespplsection')"></span>
+                            <span class="glyphicon glyphicon-minus-sign" style="vertical-align: bottom;;" ng-show="showOpen('yespplsection')"></span>
+                          </span>
+                        </span>
+                      </a>
+                    </h3>
+                  </div>
+                  <div id="collapseTwo" class="panel-collapse collapse list-group bg-success">
+                  <a href="JobApplicationReview.html" class="list-group-item" ng-repeat="candidate in job.candidates.yesones">
+                    <div>
+                      <h4 class="list-group-item-heading gogo-selectable-text-color">
+                        <span class="glyphicon glyphicon-ok gogo-success-color"></span>
+                        {{candidate.name}}
+                        <span class="glyphicon glyphicon-chevron-right pull-right gogo-selectable-text-color"></span></h4>
+                      <small class="list-group-item-text gogo-light-text-color">Submitted {{candidate.submitted | date:'fullDate'}}</small>
+                    </div>
+                  </a>
+                  </div>
+              </div>
+
+              <div class="panel panel-danger">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">
+                      <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" ng-click="hitSection('nopplsection')">
+                        <span class="glyphicon glyphicon-remove"></span>
+                        &nbsp;Candidates
+                        <span class="pull-right">
+                        <span class="badge">{{job.candidates.noones.length}}</span>
+                        <span ng-show="candidatesNoExpanderShow()">
+                          <span class="glyphicon glyphicon-plus-sign" style="vertical-align: bottom;;" ng-hide="showOpen('nopplsection')"></span>
+                          <span class="glyphicon glyphicon-minus-sign" style="vertical-align: bottom;;" ng-show="showOpen('nopplsection')"></span>
+                        </span>
+                      </span>
+                      </a>
+                    </h3>
+                  </div>
+                  <div id="collapseThree" class="panel-collapse collapse list-group">
+                  <a href="JobApplicationReview.html" class="list-group-item"  ng-repeat="candidate in job.candidates.noones">
+                    <div>
+                      <h4 class="list-group-item-heading gogo-selectable-text-color">
+                        <span class="glyphicon glyphicon-remove gogo-danger-color"></span>
+                        {{candidate.name}}
+                        <span class="glyphicon glyphicon-chevron-right pull-right gogo-selectable-text-color"></span>
+                      </h4>
+                      <small class="list-group-item-text gogo-light-text-color">Submitted {{candidate.submitted | date:'fullDate'}}</small>
+                    </div>
+                  </a>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+
+        <div  class="container col-lg-6 col-md-6 col-sm-8 col-xs-12 gogo-center" ng-controller="JobPostController">
+            <div id="jobposttop" class="row text-center">
+                <h1>Job Post</h1>
+            </div>
+
+            <form ng-submit="submitJobPost()" name="jobpostform">
+            <div ng-show="isEditMode()">
+
+              
+                  <div class="row">
+                      <div class="panel panel-warning">
+                          <div class="panel-heading">
+                              <h3 class="panel-title">
+                                <span class="glyphicon glyphicon-briefcase"></span>
+                                Details
+                              </h3>
+                          </div>
+                          <div class="panel-body">
+                              <div class="form-group">
+                                  <span class="glyphicon gogo-icon gogo-icon-map"></span>
+                                  <label>Address</label>
+                                  <input type="text" class="form-control" ng-model="job.address" maxlength="10"/>
+                              </div>
+                              <div class="form-group">
+                                  <span class="glyphicon gogo-icon gogo-icon-map"></span>
+                                  <label>City</label>
+                                  <select class="form-control" ng-model="job.city" ng-options="city.id as city.name for city in cities" required>
+                                  </select>
+                              </div>
+                              <div class="form-group">
+                                  <span class="glyphicon glyphicon-th-list"></span>
+                                  <label >Job Function</label>
+                                  <select class="form-control" ng-model="job.func" ng-options="func.id as func.name for func in funcs" required>
+                                  </select>
+                              </div>
+                              <div class="form-group">
+                                  <span class="glyphicon glyphicon-th-list"></span>
+                                  <label>Job Type</label>
+                                  <select class="form-control" ng-model="job.type" ng-options="type.id as type.name for type in types" required>
+                                  </select>
+                              </div>
+                              <div class="form-group">
+                                  <span class="glyphicon glyphicon-pencil"></span>
+                                  <label>Employer</label>
+                                  <input class="form-control" type="text" ng-model="job.employer"  maxlength="200" required/>
+                              </div>
+                              <div class="form-group">
+                                  <span class="glyphicon glyphicon-pencil"></span>
+                                  <label>Job Title</label>
+                                  <input class="form-control" type="text" ng-model="job.title"  maxlength="200" required/>
+                              </div>
+                              <div class="form-group">
+                                  <span class="glyphicon glyphicon-pencil"></span>
+                                  <label>Job Description</label>
+                                  <textarea rows="10" class="form-control gogo-expanding-textarea" ng-model="job.description" maxlength="5000"  required></textarea>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+
+                 <div class="row">
+                      <div class="panel panel-warning">
+                          <div class="panel-heading">
+                              <h3 class="panel-title">
+                                <span class="glyphicon glyphicon-briefcase"></span>
+                                Applicant Requirements
+                              </h3>
+                          </div>
+                          <div class="panel-body">
+                              <div class="form-group">
+                                  <span class="glyphicon glyphicon-film"></span>
+                                  <input type="checkbox" ng-model="job.introvid" /> 
+                                  <label>Introduction Video (30s)</label>
+                              </div>
+                              <div class="form-group">
+                                  <span class="glyphicon glyphicon-pencil"></span>
+                                  <input type="checkbox" ng-model="job.resume"/ > 
+                                  <label>Resume</label>
+                              </div>
+                              <div class="form-group">
+                                  <span class="glyphicon glyphicon-pencil"></span>
+                                  <input type="checkbox" ng-model="job.coverletter" /> 
+                                  <label>Cover Letter</label>
+                              </div>
+                              <div class="form-group">
+                                  <span class="glyphicon gogo-icon gogo-icon-linkedin"></span>
+                                  <input type="checkbox" ng-model="job.linkedin" /> 
+                                  <label>LinkedIn URL</label>
+                              </div>
+                              <div class="form-group">
+                                  <span class="glyphicon gogo-icon gogo-icon-web"></span>
+                                  <input type="checkbox" ng-model="job.website" /> 
+                                  <label>Website URL</label>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+
+                 <div class="row">
+                      <div class="panel panel-warning">
+                          <div class="panel-heading">
+                              <h3 class="panel-title">
+                                <span class="glyphicon glyphicon-film"></span>
+                                Prequalifying Video Questions
+                              </h3>
+                          </div>
+                          <div class="panel-body">
+                              <p>The applicant will be asked to record or upload a maximum 30 second video answering each of the following questions.</p>
+                              <div class="form-group">
+                                  <label>Question 1</label>
+                                  <textarea rows="5" class="form-control gogo-expanding-textarea" ng-model="job.vq1" maxlength="200"></textarea>
+                              </div>
+                              <div class="form-group">
+                                  <label>Question 2</label>
+                                  <textarea rows="5" class="form-control gogo-expanding-textarea" ng-model="job.vq2" maxlength="200"></textarea>
+                              </div> 
+                              <div class="form-group">
+                                  <label>Question 3</label>
+                                  <textarea rows="5" class="form-control gogo-expanding-textarea" ng-model="job.vq3" maxlength="200"></textarea>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+
+                 <div class="row">
+                      <div class="panel panel-warning">
+                          <div class="panel-heading">
+                              <h3 class="panel-title">
+                                <span class="glyphicon glyphicon-briefcase"></span>
+                                Post Duration
+                              </h3>
+                          </div>
+                          <div class="panel-body">
+                              <div class="form-group">
+                                  <span class="glyphicon glyphicon-calendar"></span>
+                                  <label>Post Date</label>
+                                  <p class="input-group">
+                                    <input type="text" disabled="disabled" class="form-control" datepicker-popup="{{datepickerFormat[0]}}" ng-model="job.postdate" is-open="datepickerOpen" show-weeks="false" min-date="minPostDate" ng-required="true" close-text="Close" />
+                                    <span class="input-group-btn">
+                                      <button class="btn btn-default" ng-click="openDatePicker($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                                    </span>
+                                  </p>
+                              </div>
+                              <div class="form-group">
+                                  <span class="glyphicon glyphicon-calendar"></span>
+                                  <label>Duration</label>
+                                  <select class="form-control" ng-model="job.postoption" ng-options="type.id as type.name for type in postoptions" required>
+                                  </select>
+                              </div>
+                              <div class="form-group">
+                              <p>
+                                  <span class="glyphicon glyphicon-calendar"></span>
+                                  <b>Expiry Date</b>
+                                  <span class="pull-right"></span></p>
+                              </div>
+                              <div class="form-group">
+                                  <span class="glyphicon glyphicon-lock"></span>
+                                  <label>Promo Code</label>
+                                  <input type="text" class="form-control" ng-model="job.promo" maxlength="20" />
+                              </div>
+
+                          </div>
+                      </div>
+                  </div>
+
+                  <div class="row" ng-show="!account.id">
+                      <div class="panel panel-danger">
+                          <div class="panel-heading">
+                              <h3 class="panel-title">
+                                <span class="glyphicon glyphicon-briefcase"></span>
+                                Account Details
+                              </h3>
+                          </div>
+                          <div class="panel-body">
+                              <div class="form-group">
+                                  <span class="glyphicon gogo-icon gogo-icon-map"></span>
+                                  <label>E-Mail</label>
+                                  <input type="text" class="form-control" ng-model="account.email" maxlength="320" required/>
+                              </div>
+                              <div class="form-group">
+                                  <span class="glyphicon gogo-icon gogo-icon-map"></span>
+                                  <label>Password (6 - 12 characters) </label>
+                                  <input type="password" class="form-control" ng-model="account.pwd" maxlength="12" pattern=".{6,12}" title="6 - 12 characters" required />
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+            </div>
+
+            <div class="row">
+                    <div class="form-group text-center">
+                        <button type="button" class="btn btn-warning" ng-click="setNextMode()">{{nextMode}}</button>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <button type="submit" class="btn btn-danger">Submit</button>
+                    </div>
+            </div>
+
+            </form>
+
+            <div ng-hide="isEditMode()">
+              <div class="row">
+                  <div class="panel panel-warning">
+                    <div class="panel-heading">
+                      <p>
+                          <a href="#"></a>
+                          <span class="pull-right"><a href="#">Save</a> | <a href="#">E-Mail</a></span>
+                      </p>
+                      <h3 class="panel-title">      
+                          <h3 id="">{{job.title}}</h3>
+                          <h4><a href="#">{{job.employer}}</a></h4>
+                          <h5>{{jobpreview.type}} - {{jobpreview.func}}<h5>
+                          <h5>{{jobpreview.city}} | Posted today</h5>     
+                      </h3>
+                    </div>
+                    <div class="panel-body" ng-bind-html="jobpreview.description">
+                    </div>
+                  </div>
+                </div>
+
+               <div class="row text-center">
+                  <div>
+                      <button type="button" class="btn btn-success"><span class="glyphicon glyphicon-briefcase"></span>&nbsp;Job Application</button>
+                      <br /><br /><br />
+                  </div>
+               </div>
+
+               <div class="row">
+                  <div class="panel panel-info text-center">
+                    <div class="panel-heading">
+                      <h3 class="panel-title"><span class="glyphicon glyphicon-user"></span>&nbsp;Profile Information</h3>
+                    </div>
+                    <div class="panel-body">
+                          Please complete the following candidate profile information. Please be sure to tailor your application for this role. Good luck!
+                    </div>
+                  </div>
+               </div>
+
+               <div class="row">
+                  <div class="panel panel-success">
+                    <div class="panel-heading">
+                      <h3 class="panel-title">Contact Information</h3>
+                    </div>
+                    <div class="panel-body">
+                      <div class="form-group">
+                        <span class="glyphicon glyphicon-user"></span>
+                        <label>Name</label>
+                        <input type="text" class="form-control"/>
+                      </div>
+                      <div class="form-group">
+                        <span class="glyphicon glyphicon-envelope"></span>
+                        <label>E-Mail</label>
+                        <input type="email" class="form-control"/>
+                      </div>
+                      <div class="form-group">
+                        <span class="glyphicon glyphicon-phone-alt"></span>
+                        <label>Phone #</label>
+                        <input type="text" class="form-control"/>
+                      </div>
+                      <div class="form-group" ng-show="job.linkedin">
+                        <span class="glyphicon glyphicon-share-alt"></span>
+                        <label>LinkedIn URL</label>
+                        <input type="text" class="form-control"/>
+                      </div>
+                      <div class="form-group" ng-show="job.website">
+                        <span class="glyphicon glyphicon-share-alt"></span>
+                        <label>Website URL</label>
+                        <input type="text" class="form-control"/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+               <div class="row" ng-show="job.resume">
+                  <div class="panel panel-success">
+                    <div class="panel-heading">
+                      <h4 class="panel-title"><span class="glyphicon glyphicon-pencil"></span>&nbsp;Resume</h4>
+                    </div>
+                    <div class="panel-body">
+                          <textarea rows="10" class="form-control gogo-expanding-textarea" name="app-resume" id="app-resume"></textarea>
+                    </div>
+                  </div>
+               </div>
+
+               <div class="row"  ng-show="job.coverletter">
+                  <div class="panel panel-success">
+                    <div class="panel-heading">
+                      <h4 class="panel-title"><span class="glyphicon glyphicon-pencil"></span>&nbsp;Cover Letter</h4>
+                    </div>
+                    <div class="panel-body">
+                          <textarea rows="10" class="form-control gogo-expanding-textarea" name="app-coverletter" id="app-coverletter"></textarea>
+                    </div>
+                  </div>
+               </div>
+
+               <div class="row" ng-show="showAnyVideos()">
+                  <div class="panel panel-info text-center">
+                    <div class="panel-heading">
+                      <h3 class="panel-title"><span class="glyphicon glyphicon-film"></span>&nbsp;Prequalifying Video Questions</h3>
+                    </div>
+                    <div class="panel-body">
+                          Please provide a 30 second video answering the following question(s). You can upload a video or record from your phone's camera.
+                    </div>
+                  </div>
+               </div>
+
+               <div class="row" ng-show="job.introvid">
+                  <div class="panel panel-success">
+                    <div class="panel-heading">
+                      <h4 class="panel-title"><span class="glyphicon glyphicon-film"></span>&nbsp;Introduction Video</h4>
+                    </div>
+                    <div class="panel-body">
+                          <p>Please record a 30 second video introducing yourself and why you are applying for this position.</p>
+                          <input type="file" name="app-introvideo" id="app-introvideo" />
+                    </div>
+                  </div>
+               </div>
+
+
+               <div class="row" ng-show="showVideo(1)">
+                  <div class="panel panel-success">
+                    <div class="panel-heading">
+                      <h4 class="panel-title"><span class="glyphicon glyphicon-film"></span>&nbsp;Video Question</h4>
+                    </div>
+                    <div class="panel-body">
+                          <p>{{job.vq1}}</p>
+                          <input type="file" name="app-video1" id="app-video1" />
+                    </div>
+                  </div>
+               </div>
+
+               <div class="row" ng-show="showVideo(2)">
+                  <div class="panel panel-success">
+                    <div class="panel-heading">
+                      <h4 class="panel-title"><span class="glyphicon glyphicon-film"></span>&nbsp;Video Question</h4>
+                    </div>
+                    <div class="panel-body">
+                          <p>{{job.vq2}}</p>
+                          <input type="file" name="app-video2" id="app-video2"/>
+                    </div>
+                  </div>
+               </div>
+
+               <div class="row" ng-show="showVideo(3)">
+                  <div class="panel panel-success">
+                    <div class="panel-heading">
+                      <h4 class="panel-title"><span class="glyphicon glyphicon-film"></span>&nbsp;Video Question</h4>
+                    </div>
+                    <div class="panel-body">
+                          <p>{{job.vq3}}</p>
+                          <input type="file" name="app-video3" id="app-video3" />
+                    </div>
+                  </div>
+               </div>
+               <div class="row text-center">
+                   <div>
+                      <button type="button" class="btn btn-danger">Submit Job Application</button>
+                      <br /></br /></br /></br />
+                   </div>
+               </div>
+            </div>
+        </div>    
+            <script src="jquery-1.11.1/jquery-1.11.1.min.js"></script>
+            <script src="jquery-ui-1.11.0/jquery-ui.min.js"></script>
+            <script src="bootstrap-3.2.0-dist/js/bootstrap.min.js"></script>
+            <script src="bootstrap-switch-master/js/bootstrap-switch.min.js"></script>
+            <script src="bootstrap-datepicker-master/js/bootstrap-datepicker.js"></script>
+            
+            <script src="jquery.timeago.js"></script>
+            <script src="angular.min.js"></script>
+            <script src="ui-bootstrap-tpls-0.11.0.min.js"></script>
+            <script src="angular-sanitize.js"></script>
+            <script src="app.js"></script>
+
+<script>
+$(function() {
+
+  $('.gogo-expanding-textarea').each(function(){
+   this.addEventListener('keyup', function() {
+      this.style.overflow = 'hidden';
+      this.style.height = 0;
+      this.style.height = this.scrollHeight + 'px';
+  }, false);});
+
+});
+</script>
+    </body>
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Bootstrap 101 Template</title>
+
+    <!-- Bootstrap -->
+    <link href="bootstrap-3.2.0-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bootstrap-switch-master/css/bootstrap3/bootstrap-switch.min.css" rel="stylesheet">
+    <link href="bootstrap-datepicker-master/css/datepicker.css" rel="stylesheet">
+    <link href="/streamhire/style.css" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+  <nav class="navbar navbar-default navbar-static-top" role="navigation">
+     <div class="navbar-header">
+        <button type="button" class="navbar-toggle text-left" data-toggle="collapse" 
+           data-target="#example-navbar-collapse">
+           Account
+        </button>
+        <button type="button" class="navbar-toggle" data-toggle="collapse" 
+           data-target="#example-navbar-collapse2">
+           Job Search
+        </button>
+     </div>
+     <div class="collapse navbar-collapse" id="example-navbar-collapse">
+        <form>
+                <h3>Register / Login</h3>
+                <div class="form-group">
+                <p>
+            <input type="checkbox" name="my-checkbox" checked>this is some text and
+          </p>
+      </div>
+              <div class="form-group">
+                <input type="email" placeholder="E-mail" class="form-control" />
+              </div>
+              <div class="form-group">
+                <input type="password" placeholder="Password" class="form-control" />
+              </div>
+              <div class="form-group">
+                <button type="button" class="btn btn-default col-xs-offset-4 col-xs-4">Go</button>
+              </div>
+              <div class="clearfix"></div><br />
+              <a href="#" class="pull-right">Reset Password For Email</a><br />
+        </form>
+        <div class="list-group disabled">
+          <a href="#" class="list-group-item disabled">My Jobs</a>
+          <a href="#" class="list-group-item disabled">Posted Jobs</a>
+          <a href="#" class="list-group-item disabled">Profile</a>
+        </div>
+     </div>
+     <div class="navbar-collapse collapse" id="example-navbar-collapse2">
+        <form role="form">
+            <img src="img/logo.png" class="col-xs-12" />
+            <div class="form-group">
+              <input type="text" placeholder="Job Keywords" class="form-control" />
+            </div>
+            <div class="form-group">
+            <div>
+            <div class="form-group">
+            <select name="browse-city" class="form-control">
+              <option value="">City</option>
+            </select>
+            <br />
+            <div>
+            <div class="form-group">
+            <select name="browse-function" class="form-control">
+              <option value="">Function</option>
+            </select>
+            <br />
+            <div>
+            <div class="form-group">
+            <select name="browse-type" class="form-control">
+              <option value="">Type</option>
+            </select>
+            <br /> 
+            <div>
+            <div>
+              <button type="button" class="btn btn-default col-xs-offset-2 col-xs-4 col-md-2">Find a Job</button>
+              <button type="button" class="btn btn-default col-xs-4 col-md-2">Post a Job</
+            </div>
+          </form>
+     </div>
+  </nav>
+    <div class="container col-lg-6 col-md-6 col-sm-8 col-xs-12 gogo-center">
+        <div class="row">
+          <p>
+            <a href="PostedJobs.html">&larr; Back</a>
+          </p>
+        </div>
+
+
+      <div class="row">
+        <div class="col-xs-12 text-center"><h1>Job Post</h1><br/></div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12 gogo-section-title">Details</div>
+      </div>
+
+
+
+      <div class="row">
+        <div class="gogo-side-padding"> 
+          <input type="hidden" value="1" id="postcountry" />
+          <div class="form-group">
+            <span class="glyphicon gogo-icon gogo-icon-map"></span>
+            <label for="postaddr">Postal Code</label>
+            <input type="text" placeholder="" class="form-control" id="postaddr" />
+          </div>
+          <div class="form-group">
+            <select id="postcity" class="form-control">
+              <option value="">City</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <select id="postfunction" class="form-control">
+              <option value="">Function</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <select id="posttype" class="form-control">
+              <option value="">Type</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <span class="glyphicon glyphicon-pencil"></span>
+            <label for="postemployer">Employer</label>
+            <input type="text" placeholder="" class="form-control" id="postemployer"/>
+          </div>
+          <div class="form-group">
+            <span class="glyphicon glyphicon-pencil"></span>
+            <label for="posttitle">Job Title</label>
+            <input type="text" placeholder="" class="form-control" id="posttitle"/>
+          </div>
+          <div class="form-group">
+            <span class="glyphicon glyphicon-pencil"></span>
+            <label for="postdescription">Job Description</label>
+            <textarea class="form-control gogo-expanding-textarea" id="postdescription"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-12 gogo-section-title">Applicant Requirements</div>
+      </div>
+
+
+      <div class="row">
+        <div class="gogo-side-padding"> 
+          <div class="form-group">
+            <span class="glyphicon glyphicon-film"></span>
+            <input type="checkbox" id="postintrovid" data-size="small" data-on-text="Yes" data-off-text="No" checked>
+            <label for="postintrovid">Introduction Video (30s)</label>
+          </div>
+          <div class="form-group">
+            <span class="glyphicon glyphicon-pencil"></span>
+            <input type="checkbox" id="postresume" data-size="small" data-on-text="Yes" data-off-text="No" checked>
+            <label for="postresume">Resume</label>
+          </div>
+          <div class="form-group">
+            <span class="glyphicon glyphicon-pencil"></span>
+            <input type="checkbox" id="postcoverletter" data-size="small" data-on-text="Yes" data-off-text="No" checked>
+            <label for="postcoverletter">Cover Letter</label>
+          </div>
+          <div class="form-group">
+            <span class="glyphicon gogo-icon gogo-icon-linkedin"></span>
+            <input type="checkbox" id="postlinkedin" data-size="small" data-on-text="Yes" data-off-text="No" checked>
+            <label for="postlinkedin">LinkedIn URL</label>
+            
+          </div>
+          <div class="form-group">
+            <span class="glyphicon gogo-icon gogo-icon-web"></span>
+              <input type="checkbox" id="postwebsite" data-size="small" data-on-text="Yes" data-off-text="No" checked>
+            <label for="postwebsite">Website URL</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-12 gogo-section-title">30 Second Prequalifying Video Questions</div>
+      </div>
+
+      <div class="row">
+        <div class="gogo-side-padding"> 
+          <p>The applicant will be asked to record or upload a max 30 second video answering each of the following questions.</p>
+          <div class="form-group">
+            <span class="glyphicon glyphicon-film"></span>
+            <label for="postvq1">Question 1</label>
+            <textarea class="form-control gogo-expanding-textarea" id="postvq1"></textarea>
+          </div>
+          <div class="form-group">
+            <span class="glyphicon glyphicon-film"></span>
+            <label for="postvq2">Question 2</label>
+            <textarea class="form-control gogo-expanding-textarea" id="postvq2"></textarea>
+          </div>
+          <div class="form-group">
+            <span class="glyphicon glyphicon-film"></span>
+            <label for="postvq3">Question 3</label>
+            <textarea class="form-control gogo-expanding-textarea" id="postvq3"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-12 gogo-section-title">Post Duration</div>
+      </div>
+
+      <div class="row">
+        <div class="gogo-side-padding"> 
+          <div class="form-group">
+            <span class="glyphicon glyphicon-calendar"></span>
+            <label for="postdate">Post Date</label>
+            <div id="sandbox-container">
+              <div class="input-group date">
+                <input type="text" class="form-control" id="postdate"><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <span class="glyphicon glyphicon-calendar"></span>
+            <label for="postoption">Duration</label>
+            <select id="postoption" class="form-control">
+              <option value="">5 Days for $10</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <p><b>Expiry Date</b><span class="pull-right">Friday, December 25, 2014</span></p>
+          </div>
+          <div class="form-group">
+            <span class="glyphicon glyphicon-lock"></span>
+            <label for="postpromo">Promo Code</label>
+            <input type="text" placeholder="" class="form-control" id="postpromo"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="gogo-side-padding"> 
+          <button type="button" id="previewBtn" name="preview" class="btn btn-default col-xs-4 col-xs-offset-1 text-center">Preview</button>
+          <span class="col-xs-2"></span>
+          <button type="button" class="btn btn-default col-xs-4 text-center">Submit</button><br /><br />
+        </div>
+      </div>
+
+    </div>
+<br />
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="jquery-1.11.1/jquery-1.11.1.min.js"></script>
+    <script src="jquery-ui-1.11.0/jquery-ui.min.js"></script>
+    <script src="bootstrap-3.2.0-dist/js/bootstrap.min.js"></script>
+    <script src="bootstrap-switch-master/js/bootstrap-switch.min.js"></script>
+    <script src="bootstrap-datepicker-master/js/bootstrap-datepicker.js"></script>
+
+<script>
+
+$(function() {
+  $('.gogo-expanding-textarea').each(function(){
+   this.addEventListener('keyup', function() {
+      this.style.overflow = 'hidden';
+      this.style.height = 0;
+      this.style.height = this.scrollHeight + 'px';
+  }, false);});
+
+  $("[name='my-checkbox']").bootstrapSwitch();
+
+  $('#sandbox-container .date').datepicker({
+      startDate: "06/27/2014",
+      todayBtn: "linked",
+      todayHighlight: true
+  });
+
+
+$("#previewBtn").click(function(){
+    console.log("ok");
+    var params = {'postaddr' : $('#postaddr').val().trim(),
+                  'postcountry' : $('#postcountry').val(),
+                  'postcity' : $('#postcity').val() ,
+                  'postfunction' : $('#postfunction').val(),
+                  'posttype' : $('#posttype').val(),
+                  'postemployer' : $('#postemployer').val().trim(),
+                  'posttitle' : $('#posttitle').val().trim(),
+                  'postdescription' : $('#postdescription').val().trim(),
+                  'postintrovid' : $('#postintrovid').val() == 'on' ? 1 : 0,
+                  'postresume' : $('#postresume').val() == 'on' ? 1 : 0,
+                  'postcoverletter' : $('#postcoverletter').val() == 'on' ? 1 : 0,
+                  'postlinkedin' : $('#postlinkedin').val() == 'on' ? 1 : 0,
+                  'postwebsite' : $('#postwebsite').val() == 'on' ? 1 : 0,
+                  'postvq1' : $('#postvq1').val(),
+                  'postvq2' : $('#postvq2').val(),
+                  'postvq3' : $('#postvq3').val(),
+                  'postdate' : $('#postdate').val(),
+                  'postoption' : $('#postoption').val(),
+                  'postpromo' : $('#postpromo').val()
+                  };
+
+
+  var JOBPOST_ADDR_MAXCHAR = 100;
+
+  var JOBPOST_EMPLOYER_MINCHAR = 1;
+  var JOBPOST_EMPLOYER_MAXCHAR = 200;
+
+  var JOBPOST_TITLE_MINCHAR = 1;
+  var JOBPOST_TITLE_MAXCHAR = 200;
+
+  var JOBPOST_DESCRIPTION_MINCHAR = 1;
+  var JOBPOST_DESCRIPTION_MAXCHAR = 5000;
+
+  var JOBPOST_VQ_MAXCHAR = 500;
+
+  var JOBPOST_PROMO_MAXCHAR = 45;
+
+  var errors = [];
+
+  if(params['postaddr'].length > JOBPOST_ADDR_MAXCHAR)
+  {
+    errors[errors.length] = ''.concat('Address must be max ', JOBPOST_ADDR_MAXCHAR, ' characters');
+  }
+  if(params['postemployer'].length < JOBPOST_EMPLOYER_MINCHAR || params['postemployer'].length > JOBPOST_EMPLOYER_MAXCHAR)
+  {
+    errors[errors.length] = ''.concat('Employer name must be ', JOBPOST_EMPLOYER_MINCHAR, ' to ', JOBPOST_EMPLOYER_MAXCHAR, ' characters');
+  }
+  if(params['posttitle'].length < JOBPOST_TITLE_MINCHAR || params['posttitle'].length > JOBPOST_TITLE_MAXCHAR)
+  {
+    errors[errors.length] = ''.concat('Job title must be ', JOBPOST_TITLE_MINCHAR, ' to ', JOBPOST_TITLE_MAXCHAR, ' characters');
+  }
+  if(params['postdescription'].length < JOBPOST_DESCRIPTION_MINCHAR || params['postdescription'].length > JOBPOST_DESCRIPTION_MAXCHAR)
+  {
+    errors[errors.length] = ''.concat('Job description must be ', JOBPOST_DESCRIPTION_MINCHAR, ' to ', JOBPOST_DESCRIPTION_MAXCHAR, ' characters');
+  }
+  if(params['postvq1'].length > JOBPOST_VQ_MAXCHAR)
+  {
+    errors[errors.length] = ''.concat('Video Question #1 must be max ', JOBPOST_VQ_MAXCHAR, ' characters');
+  }
+  if(params['postvq2'].length > JOBPOST_VQ_MAXCHAR)
+  {
+    errors[errors.length] = ''.concat('Video Question #2 must be max ', JOBPOST_VQ_MAXCHAR, ' characters');
+  }
+  if(params['postvq3'].length > JOBPOST_VQ_MAXCHAR)
+  {
+    errors[errors.length] = ''.concat('Video Question #3 must be max ', JOBPOST_VQ_MAXCHAR, ' characters');
+  }
+  if(params['postpromo'].length > JOBPOST_PROMO_MAXCHAR)
+  {
+    errors[errors.length] = ''.concat('Promo code must be max ', JOBPOST_PROMO_MAXCHAR, ' characters');
+  }
+
+  console.log(params);
+  console.log(errors);
+});
+
+});
+
+
+</script>
+  </body>
