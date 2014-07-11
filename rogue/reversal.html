@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Job Post</title>
+    <link href="/secondcrack/js/libs/jquery-ui-1.11.0/jquery-ui.css" rel="stylesheet" />
+    <link href="/secondcrack/js/libs/bootstrap-3.2.0-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/secondcrack/css/style.css" rel="stylesheet" />
+    <link href="/streamhire/pink.flag/jplayer.pink.flag.css" rel="stylesheet" type="text/css" />
+    <link href="/streamhire/style.css" rel="stylesheet" type="text/css" />
+    <style>
+
+.available-background {
+    background-color: #90EE90 !important;
+}
+table {
+    table-layout:fixed;
+}
+
+.div-table-content {
+  height:150px;
+  overflow-y:auto;
+}
+    </style>
+  </title>
+  <body ng-app="streamhire">
+    <div class="container" ng-controller="StreamHireRegistrationController">
+            <div class="row">
+                <h3 class="text-center">StreamHire Profile</h3>
+                <br>
+                <div class="panel panel-warning">
+                    <div class="panel-heading text-center">
+                        <h4 class="panel-title">Where are you looking to work?</h4>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <label>Your postal code</label><button type="button" class="btn btn-info pull-right">Use My Location</button> 
+                            <input class="form-control" type="text" placeholder="Postal Code" />
+                        </div>
+                        <div class="ng-scope">
+                            <label>How far (in km) would you travel to work?</label>
+                            <select class="form-control" ng-model="JobDistance" ng-options="v as v for v in AvailabilityDistance">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-warning">
+                    <div class="panel-heading text-center">
+                        <h4 class="panel-title">What types of jobs are you interested in?</h4>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <label>Job Functions</label>
+                            <select class="form-control" ng-model="Jobfunction" ng-options="v.id as v.name for v in JobAPI.JobFunctions" multiple>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Job Types</label>
+                            <select class="form-control" ng-model="JobType" ng-options="v.id as v.name for v in JobAPI.JobTypes" multiple>
+                            </select>
+                        </div>
+                    </div>
+                    <table class="table table-bordered table-condensed table-striped text-center">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th ng-repeat="t in AvailabilityDays" ng-bind="t" class="text-center"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="t in AvailabilityHours">
+                                <td ng-bind="t"></td>
+                                <td ng-click="ToggleAvailability(0, t)" ng-class="{ 'available-background' : IsAvailable(0, t) }"></td>
+                                <td ng-click="ToggleAvailability(1, t)" ng-class="{ 'available-background' : IsAvailable(1, t) }"></td>
+                                <td ng-click="ToggleAvailability(2, t)" ng-class="{ 'available-background' : IsAvailable(2, t) }"></td>
+                                <td ng-click="ToggleAvailability(3, t)" ng-class="{ 'available-background' : IsAvailable(3, t) }"></td>
+                                <td ng-click="ToggleAvailability(4, t)" ng-class="{ 'available-background' : IsAvailable(4, t) }"></td>
+                                <td ng-click="ToggleAvailability(5, t)" ng-class="{ 'available-background' : IsAvailable(5, t) }"></td>
+                                <td ng-click="ToggleAvailability(6, t)" ng-class="{ 'available-background' : IsAvailable(6, t) }"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel panel-warning">
+                    <div class="panel-heading text-center">
+                        <h4 class="panel-title">Resume</h4>
+                        <br>
+                        <p>Please provide your resume without your contact information to protect your privacy.</p>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <textarea class="form-control"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-warning">
+                    <div class="panel-heading text-center">
+                        <h4 class="panel-title">Contact Information</h4>
+                        <br>
+                        <p>Your contact information is never disclosed except to an employer when you apply for a job.</p>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input class="form-control" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <label>E-Mail</label>
+                            <input class="form-control" type="text" />
+                        </div>
+                        <div class="form-group">
+                            <label>Phone No.</label>
+                            <input class="form-control"  type="text" />
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-warning">
+                    <div class="panel-heading text-center">
+                        <h4 class="panel-title">Account Password for Registration</h4>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <input class="form-control" type="password" />
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-success">
+                    <div class="panel-heading text-center">
+                        <h4 class="panel-title">Improve your odds of getting hired!</h4>
+                        <br>
+                        <p>Employers know within 30 seconds if they are interested in you. Get their attention by uploading a 30 second video introducing yourself and why you would make a great hire! (Optional)</p>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <input class="form-control"  type="file" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center">
+                 <button type="button" class="btn btn-danger">Submit</button>
+                <br><br>
+            </div>
+            <div class="row">
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+            </div>
+
+
+            <div class="row">
+                <h3 class="text-center">Candidate Finder</h3>
+                <br>
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">Find And Invite Candidates</h4>
+                        <br>
+                        <p>Find candidates by resume keyword who would be interested in your job post based on:
+                            <ol>
+                                <li>Location</li>
+                                <li>Availability</li>
+                                <li>Job Function</li>
+                                <li>Job Type</li>
+                            </ol>
+                        </p>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <label>Resume Keywords</label>
+                            <input class="form-control" type="text" placeholder=""/>
+                        </div>
+                        <div class="form-group text-center">
+                            <button type="button" class="btn btn-danger">Search</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <h4 class="list-group-item-heading gogo-selectable-text-color">Candidate 1</h4>
+                        <p>Last Updated 10 days ago<br>Availability Match 80%</p>
+                    </div>
+                    <div class="panel-body">
+                        <div>
+                            <h5><a data-toggle="collapse" data-parent="#accordion" href="#collapseOne"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;Resume</a></h5>
+                            <div id="collapseOne" class="collapse">
+• have experience working in hospitality industry with proven management skills <br>
+• Great computer skills with intermediate knowledge in accounting and bookkeeping <br>
+• Customer service oriented with excellent interpersonal and communication skills <br>
+• Competent at managing multiple responsibilities in a high volume atmosphere <br>
+• Motivated, energetic and hardworking professional with great leadership skills <br>
+• Personable, flexible and team oriented with ability to resolve conflict<br>
+<br>
+Work Experience<br>
+<br>
+Server<br>
+server, open cork restaurant - Mississauga, ON<br>
+2010 to Present<br>
+Skills Used <br>
+Restaurant Service Skills: <br>
+• Greeted customers and ensured warm and hospitable atmosphere <br>
+• Ensured guests received prompt, friendly and efficient service <br>
+• Provided detailed information about available services, products and facilities <br>
+• Processed telephone inquiries and recorded reservations <br>
+• Excellent knowledge of various software systems such as Squirrel POS <br>
+• Balanced cash and completed balance sheets<br>
+<br><br>
+Server<br>
+Novotel Hotel - Toronto, ON<br>
+2007 to 2010<br>
+<br>
+Server<br>
+server Latina Restaurant - Toronto, ON<br>
+2001 to 2006<br>
+Responsibilities <br>
+Restaurant Service Skills: <br>
+• Greeted customers and ensured warm and hospitable atmosphere <br>
+• Ensured guests received prompt, friendly and efficient service <br>
+• Provided detailed information about available services, products and facilities <br>
+• Processed telephone inquiries and recorded reservations <br>
+• Excellent knowledge of various software systems such as Squirrel POS <br>
+• Balanced cash and completed balance sheets <br>
+ <br>
+Skills Used<br> 
+Restaurant Service Skills: <br>
+• Greeted customers and ensured warm and hospitable atmosphere <br>
+• Ensured guests received prompt, friendly and efficient service <br>
+• Provided detailed information about available services, products and facilities <br>
+• Processed telephone inquiries and recorded reservations <br>
+• Excellent knowledge of various software systems such as Squirrel POS <br>
+• Balanced cash and completed balance sheets<br>
+<br>
+Banquet Supervisor<br>
+Westin Harbour Castle Hotel - Toronto, ON<br>
+1996 to 1998<br>
+<br>
+Bartender/Server<br>
+Ed's Warehouse Restaurant - Toronto, ON<br>
+1994 to 1996<br>
+Skills<br>
+Restaurant Service Skills: • Greeted customers and ensured warm and hospitable atmosphere • Ensured guests received prompt, friendly and efficient service • Provided detailed information about available services, products and facilities • Processed telephone inquiries and recorded reservations • Excellent knowledge of various software systems such as Squirrel POS • Balanced cash and completed balance sheets
+                            </div>
+                        </div>
+                        <div>
+                            <h5><a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;Introduction Video</a></h5>
+                            <div id="collapseTwo" class="collapse">
+
+    <div id="jp_container_N" class="jp-video">
+      <div class="jp-type-playlist">
+        <div id="jquery_jplayer_N" class="jp-jplayer gogo-player-center"></div>
+        <div class="jp-gui">
+          <div class="jp-video-play">
+            <a href="javascript:;" class="jp-video-play-icon" tabindex="1">play</a>
+          </div>
+          <div class="jp-interface">
+            <div class="jp-progress">
+              <div class="jp-seek-bar">
+                <div class="jp-play-bar"></div>
+              </div>
+            </div>
+            <div class="jp-current-time"></div>
+            <div class="jp-duration"></div>
+            <div class="jp-controls-holder">
+              <ul class="jp-controls">
+                <li><a href="javascript:;" class="jp-previous" tabindex="1">previous</a></li>
+                <li><a href="javascript:;" class="jp-play" tabindex="1">play</a></li>
+                <li><a href="javascript:;" class="jp-pause" tabindex="1">pause</a></li>
+                <li><a href="javascript:;" class="jp-next" tabindex="1">next</a></li>
+                <li><a href="javascript:;" class="jp-stop" tabindex="1">stop</a></li>
+              </ul>
+            </div>
+          </div>
+
+        <div class="jp-playlist">
+          <ul>
+            <!-- The method Playlist.displayPlaylist() uses this unordered list -->
+            <li></li>
+          </ul>
+        </div>
+        <div class="jp-no-solution">
+          <span>Update Required</span>
+          To play the media you will need to either update your browser to a recent version or update your <a href="http://get.adobe.com/flashplayer/" target="_blank">Flash plugin</a>.
+        </div>
+      </div>
+    </div>
+
+                            </div>
+                        </div>
+                        <br>
+                        <div class="form-group text-center">
+                            <button type="button" class="btn btn-success">Invite For Job Application</button>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+            </div>
+        </div>
+        <script src="js/libs/jquery-1.11.1.min.js"></script>
+        <script src="js/libs/jquery-ui-1.11.0/jquery-ui.min.js"></script>
+        <script src="js/libs/bootstrap-3.2.0-dist/js/bootstrap.min.js"></script>
+        <script src="js/libs/angular.min.js"></script>
+        <script src="js/libs/angular-sanitize.min.js"></script>
+        <script src="js/libs/ui-bootstrap-tpls-0.11.0.min.js"></script>
+        <script src="js/libs/underscore.min.js"></script>
+        <script src="js/libs/string.js"></script>
+        <script src="js/libs/date.js"></script>
+        <script src="js/app.js"></script>
+        <script type="text/javascript" src="jQuery.jPlayer.2.6.0/jquery.jplayer.min.js"></script>
+        <script type="text/javascript" src="jQuery.jPlayer.2.6.0/add-on/jplayer.playlist.min.js"></script>
+<script>
+
+$(function() {
+
+var myPlaylist = new jPlayerPlaylist({
+  jPlayer: "#jquery_jplayer_N",
+  cssSelectorAncestor: "#jp_container_N"
+}, [
+  {
+        title: "1. Introduction",
+        // m4v: "http://107.170.154.102/hirestream/video.mp4",
+        // ogv: "http://107.170.154.102/hirestream/video.ogv"
+        m4v: "http://107.170.154.102/secondcrack/out.mp4",
+        ogv: "http://107.170.154.102/secondcrack/out.ogv"
+  },
+], {
+  playlistOptions: {
+    enableRemoveControls: false
+  },
+    size: {
+      width: "280px",
+      height: "220px"
+    },
+  swfPath: "/hirestream/jQuery.jPlayer.2.6.0",
+  solution: "html, flash",
+  supplied: "ogv, m4v",
+  smoothPlayBar: true,
+  keyEnabled: true
+});
+
+});
+
+
+</script>
+    </body>
+</html>
+

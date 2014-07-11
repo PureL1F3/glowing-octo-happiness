@@ -1,0 +1,162 @@
+
+.center-block {
+text-align: center;
+}
+
+.gogo-side-padding
+{
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.gogo-section-title-color {
+  background-color: rgb(236, 240, 241);
+}
+
+.gogo-instruction-color {
+  background-color: #d9edf7;
+}
+
+.gogo-section-title {
+  text-align: center;
+  margin: 0px 0px 10px 0px;
+  padding: 0px;
+  padding: 7px 14px 7px 14px;
+  font-size: 14px;
+  font-weight: bold;
+  outline-color: rgb(51, 51, 51);
+  background-color: rgb(233, 233, 233);
+  border-bottom-color: rgb(221, 221, 221);
+  border-bottom-style: solid;
+  border-bottom-width: 0px;
+  border-left-color: rgb(221, 221, 221);
+  border-left-style: solid;
+  border-left-width: 0px;
+  border-right-color: rgb(221, 221, 221);
+  border-right-style: solid;
+  border-right-width: 0px;
+  border-top-color: rgb(221, 221, 221);
+  border-top-style: solid;
+  border-top-width: 1px;
+  display: block;
+}
+
+.gogo-icon {
+    background-size: 14px 14px;
+    background-repeat: no-repeat;
+    width: 14px;
+    height: 14px;
+}
+
+.gogo-icon-map {
+    background-image: url("../icons/map.png");
+}
+
+.gogo-icon-linkedin {
+  background-image: url("../icons/linkedin.png");
+}
+
+.gogo-icon-web {
+  background-image: url("../icons/web.png");
+}
+
+
+.gogo-icon-save-color {
+  background-image: url("../icons/save-color.png");
+  background-size: 40px 40px;
+  width: 40px;
+  height: 40px;
+}
+
+.gogo-icon-apply-color {
+  background-image: url("../icons/view-color.png");
+  background-size: 40px 40px;
+  width: 40px;
+  height: 40px;
+}
+
+.gogo-icon-email-color {
+  background-image: url("../icons/email-color.png");
+  background-size: 40px 40px;
+  width: 40px;
+  height: 40px;
+}
+
+.gogo-icon-new {
+  background-image: url("../icons/new.png");
+  background-size: 24px 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.gogo-icon-new-regular {
+  background-image: url("../icons/new.png");
+  background-size: 12px 12px;
+  width: 12px;
+  height: 12px;
+}
+
+.list-group-item { word-wrap: break-word; }
+
+div.jp-video ul.jp-controls {
+    float: none;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+a.jp-video-play-icon {
+  padding: 0px;
+  margin: 0px;
+  top: 40%;
+  left: 0px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.gogo-player-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+.jp-controls-holder {
+    width: auto !important;
+}
+
+div.jp-type-playlist div.jp-playlist a {
+  font-size: 1.25em !important;
+}
+
+.jp-video {
+  width: 100% !important;
+}
+.gogo-select-button {
+  height: 100px;
+}
+
+.gogo-selectable-text-color {
+  color: #3498db !important;
+}
+
+.gogo-light-text-color {
+  color: #bdc3c7 !important;
+}
+
+.gogo-danger-color {
+  color: rgb(169, 68, 66);
+}
+
+.gogo-success-color {
+  color: rgb(60, 118, 61);
+}
+
+.gogo-new-color {
+  color: rgb(138, 109, 59);
+}
+
+.gogo-center{
+    margin: 0 auto;
+    float: none;
+}

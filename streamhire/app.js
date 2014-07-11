@@ -36,8 +36,6 @@
             promo : null
         };
 
-
-
         $scope.job = {
             title : 'Bar Server',
             employer : 'Jack Astors Bar & Grill',
