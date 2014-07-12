@@ -1,0 +1,86 @@
+<div class="panel">
+  <div class="panel-heading">
+    <p>
+      <a href="#">&larr; Back</a>
+      <span class="pull-right"><a href="#">Save</a> | <a href="#">E-Mail</a></span>
+    </p>
+    <div class="panel-title">  
+      <h3 id="" style="margin-top: 5px; margin-bottom: 1px; color: #03AB52; font-weight: normal;">Bar Servers</h3>
+      <h4>The Keg Steakhouse & Bar</h4>
+      <p>
+        <small style="color: #bdc3c7;">Posted {{result.postdate}} days ago</small>
+        <br>
+        <img src="icons/rogue_star.png" style="width: 16px; height: 16px;"><img src="icons/rogue_star.png" style="width: 16px; height: 16px"><img src="icons/rogue_star.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"><small>Job Hours Match ({{result.hours.match}} / {{result.hours.job}})</small>
+        <br>
+        <img src="icons/rogue_star.png" style="width: 16px; height: 16px;"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"><small>Availability Coverage ({{result.hours.match}} / {{result.hours.coverage}})</small>
+        <br>
+      </p>
+    </div>
+  </div>
+  <div class="panel-body">
+    description
+
+    <div class="text-center">
+      <button class="btn btn-success">Apply</button>
+    </div>
+    <div class="alert alert-success text-center" role="alert">
+      Success!<br>Your application has been submitted. 
+      <br><br>
+      To track your application and allow employers to find you, register or login.
+      <br><br>
+        <button class="btn btn-danger pull-center">Login/Register To Track Application</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="panel panel-success" ng-controller="JobSeekerRegistrationController">
+    <div class="panel-heading">
+        <h3 class="panel-title">Candidate Application</h3>
+    </div>
+    <div class="panel-body">
+        <form novalidate>
+            <div class="form-group" ng-class="{ 'has-error' : RegistrationError.account.name }">
+                <label>Name</label>
+                <input class="form-control" type="text" placeholder="" ng-model="Registration.account.name" />
+                <p ng-show="RegistrationError.account.name" ng-init="RegistrationError.account.name" class="help-block"></p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : Registration.account.email }">
+                <label>E-Mail</label>
+                <input class="form-control" type="text" placeholder="" ng-model="Employer.account.email" />
+                <p ng-show="RegistrationError.account.email" ng-init="RegistrationError.account.email" class="help-block"></p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : RegistrationError.account.phone }">
+                <label>Phone #</label>
+                <input class="form-control" type="text" placeholder="" ng-model="Registration.account.phone" />
+                <p ng-show="RegistrationError.account.phone" ng-init="RegistrationError.account.phone" class="help-block"></p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : RegistrationError.resume }">
+                <label>Resume</label>
+                <textarea class="form-control" ng-model="Registration.resume" ></textarea>
+                <p ng-show="RegistrationError.resume" ng-init="RegistrationError.resume" class="help-block"></p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : RegistrationError.availability }">
+                <label>Availability</label>
+                <table class="table table-bordered table-condensed table-striped text-center">
+                    <tr>
+                        <th></th>
+                        <th ng-repeat="day in StaticAPI.AvailabilityDays">{{day}}</th>
+                    </tr>
+                    <tr ng-repeat="period in StaticAPI.AvailabilityCategories">
+                        <td>{{period}}</td>
+                        <td ng-repeat="day in StaticAPI.AvailabilityDays">
+                            <input type="checkbox" ng-model="Registration.availability[$index][$parent.$index]" />
+                        </td>
+                    </tr>
+                </table>
+                <p ng-show="RegistrationError.availability" ng-init="RegistrationError.availability" class="help-block"></p>
+            </div>
+            <div class="alert alert-danger text-center" role="alert" ng-show="RegistrationError">There were some errors with your registration. Please check the form and try again.</div>
+            <div class="text-center">
+                <button type="button" class="btn btn-danger" ng-hide="RegistrationSubmitting" ng-click="SubmitForm()">Apply</button>
+                <img src="icons/loading.gif" ng-show="RegistrationSubmitting" />
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,97 @@
+<div class="panel panel-success">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            Search Parameters
+            <span class="glyphicon glyphicon-plus pull-right" ng-hide="SearchParamsExpanded" ng-click="ToggleSearchParamsExpanded()"></span>
+            <span class="glyphicon glyphicon-minus pull-right" ng-show="SearchParamsExpanded" ng-click="ToggleSearchParamsExpanded()"></span>
+        </h3>
+    </div>
+    <div class="panel-body" ng-show="SearchParamsExpanded">
+        <form novalidate >
+            <div class="form-group">
+                <label>Location</label>
+                <button type="button" class="btn btn-info btn-sm pull-right">Use my location</button>
+                <input type="text" placeholder="Postal Code" class="form-control" ng-model="SearchParams.location.name" />
+            </div>
+            <div class="form-group">
+                <label>Availability</label>
+                <table class="table table-bordered table-condensed table-striped text-center">
+                    <tr>
+                        <th></th>
+                        <th class="text-center" ng-repeat="day in StaticAPI.AvailabilityDays">{{day}}</th>
+                    </tr>
+                    <tr ng-repeat="period in StaticAPI.AvailabilityCategories">
+                        <td>{{period}}</td>
+                        <td ng-repeat="day in StaticAPI.AvailabilityDays">
+                            <input type="checkbox" ng-model="SearchParams.availability[$index][$parent.$index]" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="form-group">
+                <label>Keywords</label>
+                <input type="text" class="form-control" ng-model="SearchParams.keywords" />
+            </div>
+            <div class="text-center">
+                <button type="button" class="btn btn-success" ng-click="OnSearch()">Find Jobs</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="panel panel-danger" ng-show="SearchAPI.NoResults()">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+        No results
+        </h3>
+    </div>
+    <div class="panel-body">
+        Sorry there were no job matches.
+        <br><br>
+        <em>Search suggestions:</em>
+        <ol>
+            <li>Use broad keywords like retail, office, cashier, secratary, warehouse.</li>
+            <li>Expand your availability if possible.</li>
+        </ol>
+    </div>
+</div>
+<div class="panel panel-success" ng-hide="SearchAPI.NoResults()">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+        Available Jobs <span class="pull-right"><small style="color: #bdc3c7;">{{SearchAPI.SearchResults.start}} to {{SearchAPI.SearchResults.end}} of {{SearchAPI.SearchResults.total }}</small></span>
+        </h3>
+    </div>
+    <div class="list-group">
+        <a href="#" class="list-group-item" ng-repeat="result in SearchAPI.SearchResults.results">
+            <h4 style="margin-top: 5px; margin-bottom: 1px; color: #03AB52; font-weight: normal;"><u>{{result.title}}</u>
+                <span class="label label-danger pull-right" ng-show="result.applied">Applied</span>
+                <span class="label label-warning pull-right" ng-show="!result.applied && result.viewed">Viewed</span>
+            </h4>
+            <h5 style="margin-top: 5px; margin-bottom: 1px;">{{result.employer}}</h5>
+            <p>
+                <small style="color: #bdc3c7;">Posted {{result.postdate}} days ago</small>
+                <br>
+                <img src="icons/rogue_star.png" style="width: 16px; height: 16px;"><img src="icons/rogue_star.png" style="width: 16px; height: 16px"><img src="icons/rogue_star.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"> Job Hours Match ({{result.hours.match}} / {{result.hours.job}})
+                <br>
+                <img src="icons/rogue_star.png" style="width: 16px; height: 16px;"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"> Availability Coverage ({{result.hours.match}} / {{result.hours.coverage}})
+                <br>
+            </p>
+        </a>
+        <a href="#" class="list-group-item">
+            <h4 style="margin-top: 5px; margin-bottom: 1px; color: #03AB52; font-weight: normal;"><u>Beverage Manager</u></h4>
+            <h5 style="margin-top: 5px; margin-bottom: 1px;">Reds Wine Tavern</h5>
+            <p>Toronto, ON | Posted 5 days ago
+            <br>
+            <img src="icons/rogue_star.png" style="width: 16px; height: 16px;"><img src="icons/rogue_star.png" style="width: 16px; height: 16px"><img src="icons/rogue_star.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"> Job Hours Match (6 / 8)
+            <br>
+            <img src="icons/rogue_star.png" style="width: 16px; height: 16px;"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"> Availability Coverage (6 / 15)
+            </p>
+        </a>
+    </div>
+    <div>
+        <br>
+        <a href="#">&nbsp;&nbsp;&nbsp;&larr; Prev</a>
+        <a href="#" class="pull-right">Next &rarr;&nbsp;&nbsp;&nbsp;</a>
+        <br><br>
+    </div>
+</div>

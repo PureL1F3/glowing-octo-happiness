@@ -1,0 +1,108 @@
+<div class="panel panel-danger">
+    <div class="panel-heading">
+        <h3 class="panel-title">Login</h3>
+    </div>
+    <div class="panel-body">
+        <form novalidate>
+            <div class="form-group" ng-class="{ 'has-error' : LoginError.email }">
+                <label>E-Mail</label>
+                <input class="form-control" type="text" placeholder="" ng-model="Login.email" />
+                <p ng-show="LoginError.email" ng-init="LoginError.email" class="help-block"></p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : LoginError.password }">
+                <label>Password</label><span class="pull-right"><u>Forgot password for email</u></span>
+                <input class="form-control" type="text" placeholder="" ng-model="Login.password" />
+                <p ng-show="LoginError.password" ng-init="LoginError.password" class="help-block"></p>
+            </div>
+            <div class="alert alert-danger text-center" role="alert" ng-show="LoginError">Your login had some problem(s). Please check and resubmit.</div>
+            <div class="text-center">
+                <button type="button" class="btn btn-danger" ng-hide="LoginSubmitting" ng-click="SubmitLogin()">Login</button>
+                <img src="icons/loading.gif" ng-show="LoginSubmitting" />
+            </div>
+        </form>
+    </div>
+</div>
+<div class="panel panel-success" ng-controller="JobSeekerRegistrationController">
+    <div class="panel-heading">
+        <h3 class="panel-title">Registration</h3>
+    </div>
+    <div class="panel-body">
+        <form novalidate>
+            <div class="form-group" ng-class="{ 'has-error' : RegistrationError.account.name }">
+                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Name</label>
+                <input class="form-control" type="text" placeholder="" ng-model="Registration.account.name" />
+                <p ng-show="RegistrationError.account.name" ng-init="RegistrationError.account.name" class="help-block"></p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : RegistrationError.resume }">
+                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Resume</label>
+                <p>Your resume will be seen by employers with relevant jobs for your resume. Remove your contact information to keep it private until you decide to apply for specific jobs.</p>
+                <textarea class="form-control" ng-model="Registration.resume" ></textarea>
+                <p ng-show="RegistrationError.resume" ng-init="RegistrationError.resume" class="help-block"></p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : Registration.account.email }">
+                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;E-Mail</label>
+                <input class="form-control" type="text" placeholder="" ng-model="Employer.account.email" />
+                <p ng-show="RegistrationError.account.email" ng-init="RegistrationError.account.email" class="help-block"></p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : RegistrationError.account.phone }">
+                <label>Phone #</label>
+                <input class="form-control" type="text" placeholder="" ng-model="Registration.account.phone" />
+                <p ng-show="RegistrationError.account.phone" ng-init="RegistrationError.account.phone" class="help-block"></p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : RegistrationError.account.password }">
+                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Account Password</label>
+                <input class="form-control" type="password" placeholder="" ng-model="Registration.account.password" />
+                <p ng-show="RegistrationError.account.password" ng-init="RegistrationError.account.password" class="help-block"></p>
+            </div>
+            <div>
+                <h4>Job Matching Parameters</h4>
+                <p>To get your resume in front of employers who can invite you to apply for the right jobs, please let us know what availability, geographical area, job functions, and job types you would like to be visible for. Employers can only find your resume if their job matches your settings.</p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : RegistrationError.availability }">
+                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Availability</label>
+                <table class="table table-bordered table-condensed table-striped text-center">
+                    <tr>
+                        <th></th>
+                        <th ng-repeat="day in StaticAPI.AvailabilityDays">{{day}}</th>
+                    </tr>
+                    <tr ng-repeat="period in StaticAPI.AvailabilityCategories">
+                        <td>{{period}}</td>
+                        <td ng-repeat="day in StaticAPI.AvailabilityDays">
+                            <input type="checkbox" ng-model="Registration.availability[$index][$parent.$index]" />
+                        </td>
+                    </tr>
+                </table>
+                <p ng-show="RegistrationError.availability" ng-init="RegistrationError.availability" class="help-block"></p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : RegistrationError.location }">
+                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Postal Code</label>
+                <button type="button" class="btn btn-info btn-sm pull-right">Use my location</button>
+                <input type="text" class="form-control" ng-model="Registration.location" />
+                <p ng-show="RegistrationError.location" ng-init="RegistrationError.location" class="help-block"></p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : RegistrationError.distance }">
+                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Job Search Radius</label>
+                <select class="form-control" ng-model="Registration.distance" ng-options="d + ' km' for d in StaticAPI.JobSearchRadius">
+                </select>
+                <p ng-show="RegistrationError.distance" ng-init="RegistrationError.distance" class="help-block"></p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : RegistrationError.jobfunctions }">
+                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Job Functions</label>
+                <select multiple="true" class="form-control" ng-model="Registration.jobfunctions" ng-options="d.id as d.name for d in StaticAPI.JobFunctions">
+                </select>
+                <p ng-show="RegistrationError.jobfunctions" ng-init="RegistrationError.jobfunctions" class="help-block"></p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : RegistrationError.jobtypes }">
+                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Job Types</label>
+                <select multiple="true" class="form-control" ng-model="Registration.jobtypes" ng-options="d.id as d.name for d in StaticAPI.JobTypes">
+                </select>
+                <p ng-show="RegistrationError.jobtypes" ng-init="RegistrationError.jobtypes" class="help-block"></p>
+            </div>
+            <div class="alert alert-danger text-center" role="alert" ng-show="RegistrationError">There were some errors with your registration. Please check the form and try again.</div>
+            <div class="text-center">
+                <button type="button" class="btn btn-danger" ng-hide="RegistrationSubmitting" ng-click="SubmitForm()">Register</button>
+                <img src="icons/loading.gif" ng-show="RegistrationSubmitting" />
+            </div>
+        </form>
+    </div>
+</div>

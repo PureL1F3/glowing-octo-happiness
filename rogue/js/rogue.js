@@ -6,39 +6,131 @@
     app.config(['$routeProvider', function($routeProvider) {
         $routeProvider.when('/', {
             templateUrl : 'partials/jobsearch-home.html',
-            controller : 'HomeJobSearchCtrl'
+            controller : 'JobSearchHomeCtrl'
+        }).when('/employer/dashboard', {
+            templateUrl : 'partials/employer-posted.html',
+            controller : 'EmployerDashboardCtrl'
         }).when('/jobresults', {
             templateUrl : 'partials/jobsearch-results.html',
-            controller : 'HomeJobSearchCtrl'
+            controller : 'JobSearchResultsCtrl'
+        }).when('/jobpost', {
+            templateUrl : 'partials/jobpost-create.html',
+            controller : 'JobPostCreateCtrl'
+        }).when('/viewjob/:id', {
+            templateUrl : 'partials/jobpost-view.html',
+            controller : 'JobPostViewCtrl'
+        }).when('/registration/employer/:next', {
+            templateUrl : 'partials/registration-employer.html',
+            controller : 'EmployerRegistrationController'
+        }).when('/registration/employee/:jobid', {
+            templateUrl : 'partials/registration-employee.html',
+            controller : 'JobSeekerRegistrationController'
         }).otherwise({
             redirectTo : '/'
         });
     }]);
 
-    app.controller('JobSearchHomeCtrl', ['SearchAPI', '$scope', function($scope){
-        $scope.SearchAPI = SearchAPI;
-
+    app.controller('EmployerDashboardCtrl', ['$scope', function($scope){
+        
     }]);
 
-    app.controller('JobSearchResultsCtrl', ['SearchAPI', 'StaticAPI', '$scope', function($scope){
-        $scope.SearchAPI = SearchAPI;
+    app.controller('JobSearchHomeCtrl', ['SearchAPI', 'StaticAPI', '$scope', '$location', function(SearchAPI, StaticAPI, $scope, $location){
+        $scope.StaticAPI = StaticAPI;
+        $scope.OnSearch = function() {
+            SearchAPI.SetSearchParams($scope.SearchParams);
+            $location.path('/jobresults');
+        };
+
+        $scope.OnPostJob = function() {
+            $location.path('/registration/employer/post');
+        };
+
+        $scope.SearchParams = SearchAPI.GetSearchParams();
     }]);
 
+    app.controller('JobSearchResultsCtrl', ['SearchAPI', 'StaticAPI', '$scope', function(SearchAPI, StaticAPI, $scope){
+        $scope.StaticAPI = StaticAPI;
+        $scope.SearchAPI = SearchAPI;
+        $scope.SearchParams = SearchAPI.GetSearchParams();
+        $scope.SearchParamsExpanded = false;
+        $scope.ToggleSearchParamsExpanded = function() {
+            $scope.SearchParamsExpanded = !$scope.SearchParamsExpanded;   
+            console.log("toggling");
+        }
+    }]);
+
+    app.controller('JobPostCreateCtrl', ['StaticAPI', 'EmployerAPI', '$scope', function(StaticAPI, EmployerAPI, $scope) {
+        $scope.StaticAPI = StaticAPI;
+
+        $scope.Jobpost = {
+            location : {
+                name: EmployerAPI.Employer.location.name,
+                lat: EmployerAPI.Employer.location.lat,
+                lon: EmployerAPI.Employer.location.lon
+            },
+            jobfunction : 0,
+            jobtype : 0,
+            employer : EmployerAPI.Employer.name,
+            title : '',
+            description : '',
+            availability : StaticAPI.GetFullAvailability()
+        };
+
+        $scope.FormError = null;
+    }]);
 
     app.service('SearchAPI', ['$http', 'StaticAPI', function($http, StaticAPI){
-
-        this.SearchParams = {
-            keywords : '',
-            availability : StaticAPI.GetFullAvailability(),
-            location : {
-                name : '',
-                geo : {
-                    lat : null,
-                    lon : null
+        this.SearchResults = {
+            offset : 0,
+            limit : 10,
+            total : 100,
+            start : 1,
+            end : 10,
+            results : [
+                {
+                    id : 1,
+                    title : 'Beverage Manager',
+                    employer : 'Red Wines Tavern',
+                    postdate : '2014-07-04',
+                    hours : {
+                        match : 6,
+                        job : 8,
+                        coverage : 15
+                    },
+                    applied : false,
+                    viewed : true
                 }
-            }
+            ]
+        };
+
+        this.GetEmptySearchParams = function() {
+            var params = {
+                keywords : '',
+                availability : StaticAPI.GetFullAvailability(),
+                location : {
+                    name : '',
+                    geo : {
+                        lat : null,
+                        lon : null
+                    }
+                }
+            };
+            return params;
+        };
+
+        this.GetSearchParams = function() {
+            return angular.copy(this.SearchParams);
         }
 
+        this.SetSearchParams = function(params) {
+            this.SearchParams = angular.copy(params);
+        }
+
+        this.NoResults = function() {
+            return this.SearchResults.total === 0;
+        }
+
+        this.SearchParams = this.GetEmptySearchParams();
     }]);
 
     app.service('StaticAPI', ['$http', function($http) {
@@ -84,9 +176,35 @@
             "password" : "",
             "employer" : false
         };
+
+        this.Load = function() {
+            var config = {
+                method: 'GET',
+                url: '/rogue/load_account.php'
+            };
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                if(!data.ok)
+                {
+                }
+                else
+                {
+                    if(data.result){
+                        this.Account = data.result.account;
+                    }
+                }
+            });
+        };
     }]);
 
     app.service('EmployerAPI', ['$http', function($http) {
+        this.Employer = {
+            'name' : 'Employer Name',
+            'location' : {
+                'name' : 'location name',
+
+            }
+        };
 
     }]);
 
@@ -95,27 +213,145 @@
     }]);
 
     app.controller('EmployerRegistrationController', 
-        ['$scope', 'StaticAPI', 'AccountAPI', 'EmployerAPI', 
-        function($scope, StaticAPI, AccountAPI, EmployerAPI) {
+        ['$scope', '$routeParams', '$location', '$http', 'StaticAPI', 'AccountAPI', 'EmployerAPI', 
+        function($scope, $routeParams, $location, $http, StaticAPI, AccountAPI, EmployerAPI) {
+
+        //alert();
 
         $scope.StaticAPI = StaticAPI;
         $scope.EmployerAPI = EmployerAPI;
         $scope.AccountAPI = AccountAPI;
 
+        //registration ---------------------------------------------
         $scope.Registration = {
-            "account" : $scope.AccountAPI.Account,
+            "account" : {
+                "name" : "",
+                "phone" : "",
+                "email" : "",
+                "password" : "",
+            },
             "name" : "",
             "website" : "",
             "description" : ""
         };
-
         $scope.RegistrationError = null;
         $scope.RegistrationSubmitting = false;
-
-        $scope.SubmitForm = function() {
-            alert("registering employer");            
+        $scope.RegistrationErrorMessage = null;
+        $scope.ShowRegistrationErrorMessage = function(message) {
+            $scope.RegistrationErrorMessage = message;
         };
+        $scope.SubmitRegistration = function() {
+            $scope.ErrorMessage  = null;
+            $scope.RegistrationError = null;
+            $scope.RegistrationSubmitting = true;
+
+            var config = {
+                method: 'POST',
+                url: '/rogue/register_employer.php',
+                data: $scope.Registration
+            };
+
+            console.log(config);
+
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(config);
+                console.log(data);
+                if(!data.ok)
+                {
+                    $scope.ShowRegistrationErrorMessage(data.result);
+                }
+                else
+                {
+                    if(data.result.errors)
+                    {
+                        $scope.RegistrationError =  data.result.errors;
+                        $scope.ShowRegistrationErrorMessage('Your registration had some problem(s). Please check and resubmit.');
+                    }
+                    else
+                    {
+                        AccountAPI.Account = data.result.account;
+                        EmployerAPI.Employer = data.result.employer;
+
+                        $scope.Redirect();
+                    }
+                }
+                $scope.RegistrationSubmitting = false;
+
+            });
+            $promise.error(function(data, status, headers, config) {
+                console.log(data);
+                $scope.RegistrationSubmitting = false;
+                $scope.ShowRegistrationErrorMessage('We could not process your registration. Please try again later.');
+            });
+        };
+        //login ---------------------------------------------
+        $scope.Login = {
+            "email" : "",
+            "password" : ""
+        }
+        $scope.LoginErrors = null;
+        $scope.LoginSubmitting = false;
+        $scope.LoginErrorMessage = null;
+        $scope.ShowLoginErrorMessage = function(message) {
+            $scope.LoginErrorMessage = message;
+        };
+        $scope.SubmitLogin = function() {
+            var config = {
+                method: 'POST',
+                url: 'rogue/login_employer.php',
+                data: $scope.Login
+            };
+            console.log(config);
+
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(data);
+                if(!data.ok)
+                {
+                    $scope.ShowLoginErrorMessage(data.result);
+                }
+                else
+                {
+                    if(data.result.errors)
+                    {
+                        $scope.LoginErrors =  data.result.errors;
+                        $scope.ShowLoginErrorMessage('Your login had some problem(s). Please check and resubmit.');
+                    }
+                    else
+                    {
+                        AccountAPI.Account = data.result.account;
+                        EmployerAPI.Employer = data.result.employer;
+
+                        $scope.Redirect();
+                    }
+                }
+                $scope.LoginSubmitting = false;
+
+            });
+            $promise.error(function(data, status, headers, config) {
+                console.log(data);
+                $scope.LoginSubmitting = false;
+                $scope.ShowLoginErrorMessage('We could not process your login. Please try again later.');
+            });            
+        };
+        $scope.Redirect = function() {
+            if($routeParams.next == 'post')
+            {
+                $location.path('/jobpost');
+            }
+            else
+            {
+                $location.path('/employer/dashboard');
+            }
+        };
+
+
     }] );
+
+    app.controller('JobPostViewCtrl', ['$scope', function($scope){
+        
+    }])
 
     app.controller('JobSeekerRegistrationController', 
         ['$scope', 'StaticAPI', 'AccountAPI', 'JobSeekerAPI', 
