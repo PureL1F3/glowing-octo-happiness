@@ -3,20 +3,20 @@
         <h3 class="panel-title">Employer Login</h3>
     </div>
     <div class="panel-body">
-        <form novalidate>
+        <form ng-submit="SubmitLogin()" novalidate>
             <div class="form-group" ng-class="{ 'has-error' : LoginError.email }">
-                <label>E-Mail</label>
+                <label>E-Mail</label><span class="pull-right"><u><a ng-click="OnForgotPassword()">Forgot password for email</a></u></span>
                 <input class="form-control" type="text" placeholder="" ng-model="Login.email" />
-                <p ng-show="LoginError.email" ng-init="LoginError.email" class="help-block"></p>
+                <p ng-show="LoginError.email" class="help-block">{{LoginError.email}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : LoginError.password }">
-                <label>Password</label><span class="pull-right"><u><a href="#">Forgot password for email</a></u></span>
+                <label>Password</label>
                 <input class="form-control" type="text" placeholder="" ng-model="Login.password" />
-                <p ng-show="LoginError.password" ng-init="LoginError.password" class="help-block"></p>
+                <p ng-show="LoginError.password" class="help-block">{{LoginError.password}}</p>
             </div>
             <div class="alert alert-danger text-center" role="alert" ng-show="LoginErrorMessage">{{LoginErrorMessage}}</div>
             <div class="text-center">
-                <button type="button" class="btn btn-danger" ng-hide="LoginSubmitting" ng-click="SubmitLogin()">Login</button>
+                <button type="submit" class="btn btn-danger" ng-hide="LoginSubmitting">Login</button>
                 <img src="icons/loading.gif" ng-show="LoginSubmitting" />
             </div>
         </form>
@@ -27,7 +27,7 @@
         <h3 class="panel-title">Employer Registration</h3>
     </div>
     <div class="panel-body">
-        <form novalidate>
+        <form ng-submit="SubmitRegistration()"  novalidate>
             <div class="form-group" ng-class="{ 'has-error' : RegistrationError.name }">
                 <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Employer Name</label>
                 <input class="form-control" type="text" placeholder="" ng-model="Registration.name" />
@@ -65,7 +65,7 @@
             </div>
             <div class="alert alert-danger text-center" role="alert" ng-show="RegistrationErrorMessage"> {{RegistrationErrorMessage}}</div>
             <div class="text-center">
-                <button type="button" class="btn btn-danger" ng-hide="RegistrationSubmitting" ng-click="SubmitRegistration()">Register</button>
+                <button type="submit" class="btn btn-danger" ng-hide="RegistrationSubmitting" ng-click="SubmitRegistration()">Register</button>
                 <img src="icons/loading.gif" ng-show="RegistrationSubmitting" />
             </div>
 

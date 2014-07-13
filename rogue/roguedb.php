@@ -198,6 +198,153 @@ class StreamHireDB
         }
         return $this->result(true, $value);
     }
+
+    function jobfunction_isvalid($job_function)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:jobfunction_isvalid with job_function: $job_function"); 
+        $sql = "select name from jobfunction where id=$job_function";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $object = $result->fetch_object();
+        $value = false;
+        if($object)
+        {
+            syslog(LOG_INFO, 'Got result:'.$object->name); 
+            $value = true;
+        }
+        return $this->result(true, $value);
+    }
+
+    function jobtype_isvalid($job_type)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:jobtype_isvalid with job_type: $job_type"); 
+        $sql = "select name from jobtype where id=$job_type";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $object = $result->fetch_object();
+        $value = false;
+        if($object)
+        {
+            syslog(LOG_INFO, 'Got result:'.$object->name); 
+            $value = true;
+        }
+        return $this->result(true, $value);
+    }
+
+
+    function jobtypes() {
+        syslog(LOG_INFO, "Calling StreamHireDB:jobtypes"); 
+        $types = array();
+        $sql = "select name, id from jobtype";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($row = $result->fetch_array())
+        {
+            array_push($types, array('id' => intval($row['id']), 'name' => $row['name']));
+        }
+
+        return $this->result(true, $types);
+    }
+
+    function jobfunctions() {
+        syslog(LOG_INFO, "Calling StreamHireDB:jobfunctions"); 
+
+        $types = array();
+        $sql = "select name, id from jobfunction";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($row = $result->fetch_array())
+        {
+            array_push($types, array('id' => intval($row['id']), 'name' => $row['name']));
+        }
+
+        return $this->result(true, $types);
+    }
+
+    function create_jobpost($userid, $job_location_name, $job_location_lat, 
+        $job_location_lon, $job_employer, $job_title, $job_description, 
+        $job_function, $job_type, $job_externalurl, $total_hours)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:create_jobpost"); 
+        $sql_job_location_name = $this->_con->real_escape_string($job_location_name);
+        $sql_job_employer = $this->_con->real_escape_string($job_employer);
+        $sql_job_title = $this->_con->real_escape_string($job_title);
+        $sql_job_description = $this->_con->real_escape_string($job_description);
+        $sql_job_externalurl = $this->_con->real_escape_string($job_externalurl);
+        $sql = "CALL create_jobpost($userid, '$sql_job_location_name', $job_location_lat, $job_location_lon, '$sql_job_employer', '$sql_job_title', '$sql_job_description', $job_function, $job_type, '$sql_job_externalurl', $total_hours);";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $object = $result->fetch_object();
+        $this->mysql_clean_buffer();
+        $value = NULL;
+        if($object)
+        {
+            syslog(LOG_INFO, 'Created Job post id #:'.$object->id); 
+            $value = array('id' => $object->id);
+        }
+        return $this->result(true, $value);
+    }
+
+    function create_jobpost_availability($jobid, $availability, $AvailabilityDays_count, $AvailabilityCategories_count)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:create_jobpost_availability"); 
+        $has_availability = false;
+        $sql = "insert into jobpost_availability(jobid, day, hour) values ";
+        for($i = 0; $i < $AvailabilityDays_count; $i++)
+        {
+            for($j = 0; $j < $AvailabilityCategories_count; $j++)
+            {
+                if($availability[$i][$j])
+                {
+                    $has_availability = true;
+                    $sql .= "($jobid, $i, $j),";
+                }
+            }
+
+        }
+        var_dump($availability);
+        if(!$has_availability)
+        {
+            return;
+        }
+
+        $sql = rtrim($sql, ",");
+        $sql .= ";";
+        syslog(LOG_INFO, "SQL: " . $sql); 
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        return $this->result(true);
+    }
+
+    function make_jobpost_golive($jobid)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:make_jobpost_golive"); 
+        $sql = "update jobpost set active=true where id=$jobid;";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        return $this->result(true);
+    }
 }
 
 ?>

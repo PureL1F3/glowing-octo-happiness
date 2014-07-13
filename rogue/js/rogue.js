@@ -59,24 +59,109 @@
         }
     }]);
 
-    app.controller('JobPostCreateCtrl', ['StaticAPI', 'EmployerAPI', '$scope', function(StaticAPI, EmployerAPI, $scope) {
+    app.controller('JobPostCreateCtrl', ['StaticAPI', 'EmployerAPI', '$scope', '$http', function(StaticAPI, EmployerAPI, $scope, $http) {
+        var that = $scope;
+
         $scope.StaticAPI = StaticAPI;
 
+        $scope.LoadingLocationMessage = null;
         $scope.Jobpost = {
             location : {
-                name: EmployerAPI.Employer.location.name,
-                lat: EmployerAPI.Employer.location.lat,
-                lon: EmployerAPI.Employer.location.lon
+                name: '',
+                lat: '',
+                lon: ''
             },
             jobfunction : 0,
             jobtype : 0,
             employer : EmployerAPI.Employer.name,
             title : '',
             description : '',
-            availability : StaticAPI.GetFullAvailability()
+            availability : StaticAPI.GetFullAvailability(),
+            applicationtype : false,
+            externalurl : ''
+        };
+        $scope.FormSubmitting = false;
+        $scope.FormError = null;
+        $scope.FormErrorMessage = null;
+
+        $scope.ShowFormErrorMessage = function(message){
+            $scope.FormErrorMessage = message;
         };
 
-        $scope.FormError = null;
+        $scope.SubmitJobPost = function() {
+            $scope.FormSubmitting = true;
+            $scope.FormError = null;
+            $scope.FormErrorMessage = null;
+
+            var config = {
+                method: 'POST',
+                url: '/rogue/create_jobpost.php',
+                data: $scope.Jobpost
+            };
+
+            console.log(config);
+
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(config);
+                console.log(data);
+                if(!data.ok)
+                {
+                    $scope.ShowFormErrorMessage(data.result);
+                }
+                else
+                {
+                    if(data.result.errors)
+                    {
+                        $scope.FormError =  data.result.errors;
+                        $scope.ShowFormErrorMessage('Your job post had some problem(s). Please check and resubmit.');
+                    }
+                    else
+                    {
+                        alert("jobpost success");
+                    }
+                }
+                $scope.FormSubmitting = false;
+
+            });
+            $promise.error(function(data, status, headers, config) {
+                console.log(data);
+                $scope.FormSubmitting = false;
+                $scope.ShowFormErrorMessage('We could not process your job post. Please try again later.');
+            });
+        };
+
+        $scope.GetLocation = function() {
+            $scope.GettingLocation = true;
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition($scope.OnGotLocationSuccess, $scope.OnGotLocationError, { timeout: 3000 });
+                setTimeout(function(){
+                    if($scope.LoadingLocationMessage) {
+                        $scope.OnGotLocationError();
+                }}, 4000);
+                $scope.LoadingLocationMessage = 'Loading...';
+            }
+            else
+            {
+                $scope.LoadingLocationMessage = 'Please enter your postal code - your location is not available.';
+            }
+        }
+
+        $scope.OnGotLocationError = function(error) {
+            $scope.$apply(function() {
+                that.GettingLocation = false;
+                that.LoadingLocationMessage = 'Please enter your postal code - your location is not available.';
+            });
+        };
+
+        $scope.OnGotLocationSuccess = function(position) {
+            $scope.$apply(function() {
+                that.LoadingLocationMessage = null;
+                that.Jobpost.location.name = 'My location';
+                that.Jobpost.location.lat = position.coords.latitude;
+                that.Jobpost.location.lon = position.coords.longitude;
+            });
+        };
     }]);
 
     app.service('SearchAPI', ['$http', 'StaticAPI', function($http, StaticAPI){
@@ -134,20 +219,21 @@
     }]);
 
     app.service('StaticAPI', ['$http', function($http) {
+        that = this;
 
-        this.JobFunctions = [
-            { id: 1, name: 'Retail'},
-            { id: 2, name: 'Cool School'}
-        ];
+        this.JobFunctions = [];
 
-        this.JobTypes = [
-            { id: 1, name: 'Full-Time'}
-        ];
+        this.JobTypes = [];
 
         this.AvailabilityCategories = ['6AM-10AM', '10AM-2PM', '2PM-6PM', '6PM-10PM', '10PM-2AM', '2AM-6AM'];
         this.AvailabilityDays = ['M', 'T', 'W', 'Th', 'F', 'Sat', 'Sun'];
 
         this.JobSearchRadius = [5, 10, 25, 50, 100];
+
+        this.ApplicationTypes = [
+            {id : false, name : "Apply via StreamHire"},
+            {id : true, name : "Apply via External Application"}
+        ];
 
 
         this.GetFullAvailability = function() {
@@ -165,6 +251,36 @@
             return availability;
         };
 
+        this.Load = function() {
+            var config = {
+                method: 'GET',
+                url: '/rogue/static.php'
+            };
+
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(config);
+                console.log(data);
+                if(!data.ok)
+                {
+                    that.FailedToLoad();
+                }
+                else
+                {
+                    that.JobFunctions = data.result.jobfunctions;
+                    that.JobTypes = data.result.jobtypes;                
+                }
+            });
+            $promise.error(function(data, status, headers, config) {
+                this.FailedToLoad();
+            });
+        };
+
+        this.FailedToLoad = function() {
+            console.log("Failed to load static....");
+        }
+
+        this.Load();
 
     }]);
 
@@ -213,14 +329,30 @@
     }]);
 
     app.controller('EmployerRegistrationController', 
-        ['$scope', '$routeParams', '$location', '$http', 'StaticAPI', 'AccountAPI', 'EmployerAPI', 
-        function($scope, $routeParams, $location, $http, StaticAPI, AccountAPI, EmployerAPI) {
+        ['$scope', '$routeParams', '$location', '$http', '$routeParams', 'StaticAPI', 'AccountAPI', 'EmployerAPI', 
+        function($scope, $routeParams, $location, $http, $routeParams, StaticAPI, AccountAPI, EmployerAPI) {
 
         //alert();
 
         $scope.StaticAPI = StaticAPI;
         $scope.EmployerAPI = EmployerAPI;
         $scope.AccountAPI = AccountAPI;
+
+        //forgot password
+        $scope.OnForgotPassword = function() {
+            $scope.LoginError = null;
+            $scope.LoginSubmitting = false;
+            $scope.LoginErrorMessage = null;
+
+            if($scope.Login.email.trim().length < 1)
+            {
+                $scope.LoginError = { "email" : "Enter your account-email so we can send you a password reset link."};
+            }
+            else
+            {
+                $scope.LoginError = { "email" : "We have sent you a password reset link."};
+            }
+        };
 
         //registration ---------------------------------------------
         $scope.Registration = {
@@ -290,16 +422,20 @@
             "email" : "",
             "password" : ""
         }
-        $scope.LoginErrors = null;
+        $scope.LoginError = null;
         $scope.LoginSubmitting = false;
         $scope.LoginErrorMessage = null;
         $scope.ShowLoginErrorMessage = function(message) {
             $scope.LoginErrorMessage = message;
         };
         $scope.SubmitLogin = function() {
+            $scope.LoginError = null;
+            $scope.LoginSubmitting = false;
+            $scope.LoginErrorMessage = null;
+
             var config = {
                 method: 'POST',
-                url: 'rogue/login_employer.php',
+                url: '/rogue/login_employer.php',
                 data: $scope.Login
             };
             console.log(config);
@@ -315,7 +451,7 @@
                 {
                     if(data.result.errors)
                     {
-                        $scope.LoginErrors =  data.result.errors;
+                        $scope.LoginError =  data.result.errors;
                         $scope.ShowLoginErrorMessage('Your login had some problem(s). Please check and resubmit.');
                     }
                     else
@@ -327,7 +463,6 @@
                     }
                 }
                 $scope.LoginSubmitting = false;
-
             });
             $promise.error(function(data, status, headers, config) {
                 console.log(data);
@@ -336,7 +471,7 @@
             });            
         };
         $scope.Redirect = function() {
-            if($routeParams.next == 'post')
+            if($routeParams.next === 'post')
             {
                 $location.path('/jobpost');
             }

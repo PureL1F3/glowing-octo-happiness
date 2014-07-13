@@ -5,42 +5,44 @@
         </h3>
     </div>
     <div class="panel-body">
-        <form novalidate>
+        <form ng-submit="SubmitJobPost()" novalidate>
             <div class="form-group" ng-class="{ 'has-error' : FormError.location }">
-                <label>Location</label>
-                <button type="button" class="btn btn-info btn-sm pull-right">Use my location</button>
-                <input type="text" placeholder="Postal Code" class="form-control" ng-model="Jobpost.location.name" />
-                 <p ng-show="FormError.location" ng-init="FormError.location" class="help-block"></p>
+                <label>Postal Code</label>
+                <button type="button" class="btn btn-info btn-sm pull-right" ng-click="GetLocation()">Use my location</button>
+                <input type="text" class="form-control" ng-model="Jobpost.location.name" />
+                <p ng-show="FormError.location" class="help-block">{{FormError.location}}</p>
+                <p ng-show="LoadingLocationMessage" class="help-block">{{LoadingLocationMessage}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : FormError.employer }">
                 <label>Employer</label>
                 <input type="text" class="form-control" ng-model="Jobpost.employer" />
-                <p ng-show="FormError.employer" ng-init="FormError.employer" class="help-block"></p>
+                <p ng-show="FormError.employer" class="help-block">{{FormError.employer}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : FormError.title }">
                 <label>Job Title</label>
                 <input type="text" class="form-control" ng-model="Jobpost.title" />
-                <p ng-show="FormError.title" ng-init="FormError.title" class="help-block"></p>
+                <p ng-show="FormError.title" class="help-block">{{FormError.title}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : FormError.description }">
                 <label>Job Description</label>
                 <textarea class="form-control" ng-model="Jobpost.description"></textarea>
-                <p ng-show="FormError.description" ng-init="FormError.description" class="help-block"></p>
+                <p ng-show="FormError.description" class="help-block">{{FormError.description}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : FormError.jobfunction }">
                 <label>Job Function</label>
-                <select class="form-control" ng-model="Jobpost.jobtype" ng-options="v.id as v.name for v in StaticAPI.JobFunctions">
+                <select class="form-control" ng-model="Jobpost.jobfunction" ng-options="v.id as v.name for v in StaticAPI.JobFunctions">
                 </select>
-                <p ng-show="FormError.jobfunction" ng-init="FormError.jobfunction" class="help-block"></p>
+                <p ng-show="FormError.jobfunction" class="help-block">{{FormError.jobfunction}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : FormError.jobtype }">
                 <label>Job Type</label>
                 <select class="form-control" ng-model="Jobpost.jobtype" ng-options="v.id as v.name for v in StaticAPI.JobTypes">
                 </select>
-                <p ng-show="FormError.jobtype" ng-init="FormError.jobtype" class="help-block"></p>
+                <p ng-show="FormError.jobtype" class="help-block">{{FormError.jobtype}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : FormError.availability }">
                 <label>Availability</label>
+                <p ng-show="FormError.availability" class="help-block">{{FormError.availability}}</p>
                 <table class="table table-bordered table-condensed table-striped text-center">
                     <tr>
                         <th></th>
@@ -53,13 +55,41 @@
                         </td>
                     </tr>
                 </table>
-                <p ng-show="FormError.availability" ng-init="FormError.availability" class="help-block"></p>
             </div>
-            <div  class="alert alert-danger text-center" role="alert" ng-show="FormError">
-                You job post had some problem(s). Please check and resubmit.
+            <div class="form-group" ng-class="{ 'has-error' : FormError.applicationtype }">
+                <label>Job Application Type</label>
+                <div  class="alert alert-warning" role="alert">
+                    <h5>StreamHire Job Application</h5>
+                    <p>
+                        Using StreamHire's job application, applicants will be asked to provide the following information. All applicant information will show in your hiring dashboard where you can easily review and filter candidates:
+                        <ol>
+                            <li>Name</li>
+                            <li>Phone #</li>
+                            <li>E-Mail</li>
+                            <li>Resume</li>
+                            <li>Availability</li>
+                        </ol>
+                    </p>
+                    <h5>External Job Application</h5>
+                    <p>
+                        Alternatively, you may provide an external page where applicants will be directed to apply. 
+                    </p>
+                </div>
+                <select class="form-control" ng-model="Jobpost.applicationtype" ng-options="v.id as v.name for v in StaticAPI.ApplicationTypes">
+                </select>
+                <p ng-show="FormError.availability" class="help-block">{{FormError.applicationtype}}</p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : FormError.externalurl }" ng-show="Jobpost.applicationtype">
+                <label>External Application URL</label>
+                <input type="text" class="form-control" ng-model="Jobpost.externalurl" />
+                <p ng-show="FormError.externalurl" class="help-block">{{FormError.externalurl}}</p>
+            </div>
+            <div  class="alert alert-danger text-center" role="alert" ng-show="FormErrorMessage">
+                {{FormErrorMessage}}
             </div>
             <div class="text-center">
-                <button type="button" class="btn btn-success" ng-click="OnSearch()">Post</button>
+                <button type="submit" class="btn btn-success" ng-hide="FormSubmitting">Post Job</button>
+                <img src="icons/loading.gif" ng-show="FormSubmitting" />
             </div>
         </form>
     </div>
