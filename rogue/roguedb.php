@@ -523,6 +523,153 @@ class StreamHireDB
 
         return $this->result(true, $jobfunctions);
     }
+
+    function get_search_keywords($keywords)
+    {
+        $keyword_clause = "";
+        //remove non alphanumeric and replace multi white space with single space
+        $keywords = trim($keywords);
+        $keywords = preg_replace('/[^a-z \d ]/i', '', $keywords);
+        $keywords = preg_replace('/\s+/', ' ',$keywords);
+        return $keywords;
+    }
+
+    function get_jobsearch_sql($keywords, $availability, $location_lat, 
+            $location_lon, $offset, $distance, $limit)
+    {
+        $lon1 = $location_lon - $distance / abs(cos(deg2rad($location_lat)) * 69);
+        $lon2 = $location_lon + $distance / abs(cos(deg2rad($location_lat)) * 69);
+        $lat1 = $location_lat - ($distance / 69);
+        $lat2 = $location_lat + ($distance / 69);
+
+        $availability_$clause = "";
+        for($i = 0; $i < count($availability); $i++)
+        {
+            $availability_clause_day = "";
+            for($j = 0; $j < count($availability[$i]; $j++))
+            {
+                if($availability[$i][$j])
+                {
+                    if(strlen($availability_clause_day) == 0)
+                    {
+                        $availability_clause_day .= "(day=$i and hour in (";
+                    }
+
+                    $availability_clause_day .= "$j,";
+                }
+            }
+            if(strlen($availability_clause_day) > 0)
+            {
+                $availability_clause_day = rtrim($availability_clause_day, ",");
+                $availability_clause_day .= "),"
+                $availability_$clause .= $availability_clause_day;
+                if($i + 1 == count($availability))
+                {
+
+                    $availability_clause = rtrim($availability_clause, ",");
+                    $availability_clause = "(select jobid, count(hour) match_hours " .
+                                            "from jobpost_availability where " . $availability_clause . 
+                                            ") ja on j.id=ja.jobid ";
+                }
+            }
+        }
+
+        $keyword_clause = "";
+        //remove non alphanumeric and replace multi white space with single space
+        $keywords = get_search_keywords($keywords);
+        $sql_keywords = $this->_con->real_escape_string($keywords);
+
+        $keywords_array = explode ( $keywords ,' ');
+        foreach($keywords_array as $k)
+        {
+            $keyword_clause .= "$k* ";
+        }
+        if(strlen($keyword_clause) > 0) 
+        {
+            rtrim($keyword_clause, ' ');
+
+            $keyword_clause = "match(j.title, j.description) against ('$keyword_clause' IN BOOLEAN MODE) ";
+        }
+
+        $detination_clause = "j.lon between $lon1 and $lon2 and j.lat between $lat1 and $lat2 "
+
+        $sql = "select j.id, j.title, j.description, e.name, j.created, j.total_hours, ";
+        if(strlen($availability_$clause))
+        {
+            $sql .= " ja.match_hours, ";
+        }
+        else
+        {
+            $sql .= " 0 match_hours, ";
+        }
+
+        $sql .= "3956 * 2 * ASIN(SQRT( POWER(SIN(($location_lat - j.lat) *  pi()/180 / 2), 2) " .
+            "+ COS($location_lat * pi()/180) " .
+            "* COS(j.lat * pi()/180) " .
+            "* POWER(SIN(($location_lon - j.lon) " .
+            "* pi()/180 / 2), 2) )) " .
+        "as distance " .
+        "from jobpost j " .
+        "join employer e on j.employerid=e.userid ";
+
+        if(strlen($availability_$clause))
+        {
+            $sql .= " join " . $availability_$clause;    
+        }
+        "where " . $detination_clause;
+        if(strlen($keyword_clause))
+        {
+            $sql .= " and " $keyword_clause;
+        }
+
+        $sql .= "order by match_hours limit $offset, $limit;";
+
+        return $sql;
+    }
+
+    function jobs($keywords, $availability, $location_lat, 
+            $location_lon, $offset, $distance, $limit)
+    {
+        $jobs = array();
+        $sql = get_jobsearch_sql($keywords, $availability, $location_lat, 
+                    $location_lon, $offset, $distance, $limit);
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($row = $result->fetch_array())
+        {
+            $job = array(   'id' => intval($row['id']),
+                            'title' => $row['title'],
+                            'employer' => $row['name'],
+                            'created' => $row['created'],
+                            'total_hours' => intval($row['total_hours']),
+                            'match_hours' => intval($row['match_hours']),
+                            'distance' => floatval($row['distance']));
+            array_push($jobs, $job);
+        }
+
+        return $this->result(true, $jobs);
+    }
+
+    function get_totalcount()
+    {
+        $rows = 0;
+        $sql = "SELECT FOUND_ROWS() rows;";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        if($row = $result->fetch_array())
+        {
+            $rows = $object['rows'];
+        }
+
+        return $this->result(true, $rows);
+    }
+
 }
 
 ?>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js">
+    </script>
+    <script type="text/javascript">
+      var geocoder;
+      function initialize() {
+        geocoder = new google.maps.Geocoder();
+      }
+
+      function geocode(address)
+      {
+        geocoder.geocode({'address' : address}, function(results, status){
+          if(status == google.maps.GeocoderStatus.OK)
+          {
+            var location = results[0].geometry.location;
+            var lat = location.lat();
+            var lon = location.lng();
+
+            alert('(lat = ' + lat + ', lon = ' + lon + ')');
+          }
+          else
+          {
+            alert('invalid address');
+          }
+        });
+      }
+
+      initialize();
+      geocode('m9a 4y1');
+    </script>
+  </head>
+  <body>
+  </body>
+</html>

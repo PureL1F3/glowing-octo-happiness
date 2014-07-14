@@ -197,9 +197,8 @@
                 availability : StaticAPI.GetFullAvailability(),
                 location : {
                     name : '',
-                    geo : {
-                        lat : null,
-                        lon : null
+                    lat : 0,
+                    lon : 0
                     }
                 }
             };
