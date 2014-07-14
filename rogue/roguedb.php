@@ -542,11 +542,11 @@ class StreamHireDB
         $lat1 = $location_lat - ($distance / 69);
         $lat2 = $location_lat + ($distance / 69);
 
-        $availability_$clause = "";
+        $availability_clause = "";
         for($i = 0; $i < count($availability); $i++)
         {
             $availability_clause_day = "";
-            for($j = 0; $j < count($availability[$i]; $j++))
+            for($j = 0; $j < count($availability[$i]); $j++)
             {
                 if($availability[$i][$j])
                 {
@@ -561,8 +561,8 @@ class StreamHireDB
             if(strlen($availability_clause_day) > 0)
             {
                 $availability_clause_day = rtrim($availability_clause_day, ",");
-                $availability_clause_day .= "),"
-                $availability_$clause .= $availability_clause_day;
+                $availability_clause_day .= "),";
+                $availability_clause .= $availability_clause_day;
                 if($i + 1 == count($availability))
                 {
 
@@ -591,10 +591,10 @@ class StreamHireDB
             $keyword_clause = "match(j.title, j.description) against ('$keyword_clause' IN BOOLEAN MODE) ";
         }
 
-        $detination_clause = "j.lon between $lon1 and $lon2 and j.lat between $lat1 and $lat2 "
+        $detination_clause = "j.lon between $lon1 and $lon2 and j.lat between $lat1 and $lat2 ";
 
         $sql = "select j.id, j.title, j.description, e.name, j.created, j.total_hours, ";
-        if(strlen($availability_$clause))
+        if(strlen($availability_clause))
         {
             $sql .= " ja.match_hours, ";
         }
@@ -612,14 +612,14 @@ class StreamHireDB
         "from jobpost j " .
         "join employer e on j.employerid=e.userid ";
 
-        if(strlen($availability_$clause))
+        if(strlen($availability_clause))
         {
-            $sql .= " join " . $availability_$clause;    
+            $sql .= " join " . $availability_clause;    
         }
         "where " . $detination_clause;
         if(strlen($keyword_clause))
         {
-            $sql .= " and " $keyword_clause;
+            $sql .= " and " . $keyword_clause;
         }
 
         $sql .= "order by match_hours limit $offset, $limit;";
@@ -630,6 +630,7 @@ class StreamHireDB
     function jobs($keywords, $availability, $location_lat, 
             $location_lon, $offset, $distance, $limit)
     {
+        syslog(LOG_INFO, "Calling StreamHireDB:jobs"); 
         $jobs = array();
         $sql = get_jobsearch_sql($keywords, $availability, $location_lat, 
                     $location_lon, $offset, $distance, $limit);
@@ -655,6 +656,7 @@ class StreamHireDB
 
     function get_totalcount()
     {
+        syslog(LOG_INFO, "Calling StreamHireDB:get_totalcount"); 
         $rows = 0;
         $sql = "SELECT FOUND_ROWS() rows;";
         $result = $this->_con->query($sql);
@@ -668,6 +670,126 @@ class StreamHireDB
         }
 
         return $this->result(true, $rows);
+    }
+
+    function create_jobapplicant()
+    {   
+        syslog(LOG_INFO, "Calling StreamHireDB:create_jobapplicant"); 
+        $sql_name = $this->_con->real_escape_string($name);
+        $sql_email = $this->_con->real_escape_string($email);
+        $sql_phone = $this->_con->real_escape_string($phone);
+        $sql_resume = $this->_con->real_escape_string($resume);
+        $sql = "CALL create_applicant($sql_name, $sql_email, $sql_phone, $sql_resume);";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($row = $result->fetch_array())
+        {
+            array_push($jobtypes, intval($row['jobtypeid']));
+        }
+
+        return $this->result(true, $jobtypes);
+    }
+
+    function get_tempapplicantid($token)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:create_tempapplicant");
+        $sql_token = $this->_con->real_escape_string($token); 
+        $sql = "select id from tempapplicants where token='$sql_token';";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $object = $result->fetch_object();
+        $this->mysql_clean_buffer();
+        $applicantid = NULL;
+        if($object)
+        {
+            syslog(LOG_INFO, 'Found temp applicant id #:'.$object->id); 
+            $applicantid = array('id' => $object->id);
+        }
+
+        return $this->result(true, $applicantid);
+    }
+
+    function create_tempapplicant($token)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:create_tempapplicant"); 
+        $sql = "CALL create_tempapplicant($token);";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $object = $result->fetch_object();
+        $this->mysql_clean_buffer();
+        $applicantid = NULL;
+        if($object)
+        {
+            syslog(LOG_INFO, 'Created temp applicant id #:'.$object->id); 
+            $applicantid = array('id' => $object->id);
+        }
+
+        return $this->result(true, $applicantid);
+    }
+
+    function submit_jobapplication($jobid, $userid, $name, $email, $phone, $resume)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:submit_jobapplication"); 
+        $sql_name = $this->_con->real_escape_string($name);
+        $sql_email = $this->_con->real_escape_string($email);
+        $sql_phone = $this->_con->real_escape_string($phone);
+        $sql_resume = $this->_con->real_escape_string($resume);
+        $sql = "CALL create_application($jobid, $userid, '$sql_name', '$sql_email', '$sql_phone', '$sql_resume');";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $application = null;
+        $object = $result->fetch_object();
+        $this->mysql_clean_buffer();
+        if($object)
+        {
+            $application = array('id' => $object->id);
+        }
+
+        return $this->result(true, $application);
+    }
+
+    function submit_jobapplicationavailability($applicationid, $availability, $AvailabilityDays_count, $AvailabilityCategories_count)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:submit_jobapplicationavailability"); 
+        $has_availability = false;
+        $sql = "insert into application_availability(applicationid, day, hour) values ";
+        for($i = 0; $i < $AvailabilityDays_count; $i++)
+        {
+            for($j = 0; $j < $AvailabilityCategories_count; $j++)
+            {
+                if($availability[$i][$j])
+                {
+                    $has_availability = true;
+                    $sql .= "($applicationid, $i, $j),";
+                }
+            }
+
+        }
+        if(!$has_availability)
+        {
+            return;
+        }
+
+        $sql = rtrim($sql, ",");
+        $sql .= ";";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        return $this->result(true);
     }
 
 }

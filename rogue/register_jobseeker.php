@@ -164,7 +164,7 @@ else
         {
             break;
         }
-        $registration[$i] = array();
+        $availability[$i] = array();
         for($j = 0; $j < $AvailabilityCategories_count; $j++)
         {
             if(!isset($registration['availability'][$i][$j]) || !is_bool($registration['availability'][$i][$j]))

@@ -1,9 +1,39 @@
 <div class="panel panel-success">
     <div class="panel-heading">
         <h3 class="panel-title">
-            Your Posted Jobs
+            Your Posted Jobs<span class="pull-right"><small style="color: #bdc3c7;">{{PostedJobs.start}} to {{PostedJobs.end}} of {{PostedJobs.total}}</small></span>
         </h3>
     </div>
-    <div class="panel-body">
-    </div>
+    <ul  class="list-group">
+        <li  class="list-group-item">
+            <div class="text-center">
+                <p ng-hide="PostedJobs.jobs">You don't have any posted jobs yet.<br></p>
+                <button class="btn btn-danger">Post a Job</button>
+                <br>
+            </div>
+        </li>
+        <li  class="list-group-item" ng-repeat="Job in PostedJobs.jobs">
+            <div>
+                <h4>{{Job.title}}<span class="label label-success pull-right" ng-hide="Job.expired">Active</span><span class="label label-danger pull-right" ng-show="Job.expired">Expired</span></h4>
+                <h5>{{Job.employer}}</h5>
+                <p>Posted {{Job.posted_days}} days ago | Expires in {{Job.expire_days}} days</p>
+                <div>
+                    <label><a ng-click="OnEditPost(Job.id)"><span class="glyphicon glyphicon-pencil"></span>&nbsp;<u>Edit Post</u></a></label>
+                    <br>
+                    <label><a ng-click="OnRemovePost(Job.id)"><span class="glyphicon glyphicon-remove"></span>&nbsp;<u>Remove Post</u></a></label>
+                    <br>
+                    <label><a ng-click="OnExtendPost(Job.id)"><span class="glyphicon glyphicon-time"></span>&nbsp;<u>Extend Post by 7 Days</u></a></label>
+                    <br>
+                    <label><span class="glyphicon glyphicon-user"></span>&nbsp;View Candidates</label>
+                    <div>
+                        <a ng-click="OnViewCandidates(Job.id, 'new')"><span class="badge alert-warning">&nbsp;&nbsp;&nbsp;&nbsp;New&nbsp;&nbsp;&nbsp;&nbsp;<br><br>{{Job.candidates.new}}</span></a>
+                        <a ng-click="OnViewCandidates(Job.id, 'yes')"><span class="badge alert-success">&nbsp;&nbsp;&nbsp;&nbsp;Yes&nbsp;&nbsp;&nbsp;&nbsp;<br><br>{{Job.candidates.yes}}</span></a>
+                        <a ng-click="OnViewCandidates(Job.id, 'no')"><span class="badge alert-danger">&nbsp;&nbsp;&nbsp;&nbsp;No&nbsp;&nbsp;&nbsp;&nbsp;<br><br>{{Job.candidates.no}}</span></a>
+                        <a ng-click="OnViewCandidates(Job.id, 'matches')"><span class="badge alert-info">StreamHire Matches<br><br><span class="glyphicon glyphicon-search"></span>&nbsp;&nbsp;&nbsp;{{Job.candidates.matches}}&nbsp;&nbsp;&nbsp;</span></a>
+                    </div>
+                </div>
+                <br>
+            </div>
+        </li>
+    </ul>
 </div>

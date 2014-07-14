@@ -10,6 +10,9 @@
         }).when('/employer/dashboard', {
             templateUrl : 'partials/employer-posted.html',
             controller : 'EmployerDashboardCtrl'
+        }).when('/employer/job/:jobid/candidates/:type/:page', {
+            templateUrl : 'partials/jobpost-candidates.html',
+            controller : 'EmployerJobCandidatesCtrl'
         }).when('/jobseeker/dashboard', {
             templateUrl : 'partials/jobseeker-dashboard.html',
             controller : 'JobSeekerDashboardCtrl'
@@ -33,8 +36,157 @@
         });
     }]);
 
+    app.controller('EmployerJobCandidatesCtrl', ['$scope', 'StaticAPI', function($scope, StaticAPI){
+        $scope.StaticAPI = StaticAPI;
+
+        $scope.Job = {
+            id : 1,
+            title : 'job title',
+            employer : 'employer',
+            posted_days : 0,
+            expire_days : 1,
+            candidates : {
+                'new' : 100,
+                yes : 10,
+                no : 5,
+                matches : 50
+            },
+            job_hours : 10
+        };
+
+        $scope.Candidates = {
+            type : 'New',
+            start : 1,
+            end : 5,
+            total : 50,
+            profiles : [{
+                id : 10,
+                name : 'Anna Vassilovski',
+                application_days : 0,
+                job_hours_match : 5,
+                job_hours_match_solid : 2,
+                job_hours_match_empty : 2,
+                availability : StaticAPI.GetFullAvailability(),
+                resume : 'omgggg some stuff'
+                }]
+        };
+
+        $scope.IsCandidates = function(type)
+        {
+            return $scope.Candidates.type === type;
+        }
+
+        $scope.getTimes=function(n){
+            return new Array(n);
+        };
+
+        $scope.OnBackToPostedJobs = function() {
+
+        };
+
+        $scope.OnViewCandidates = function(id, type){
+            if(type === 'new')
+            {
+
+            }
+            else if(type === 'yes')
+            {
+
+            }
+            else if(type === 'no')
+            {
+
+            }
+            else if(type === 'matches')
+            {
+
+            }
+        };
+
+        $scope.OnEditPost = function(id) {
+        };
+
+        $scope.OnRemovePost = function(id) {
+
+        };
+
+        $scope.OnExtendPost = function(id) {
+
+        };
+
+        $scope.OnModifyCandidate = function(id, mod) {
+            if(mod == 'yes')
+            {
+
+            }
+            else if(mod == 'no')
+            {
+
+            }
+        }
+
+        $scope.OnNextPage = function() {
+
+        };
+
+        $scope.OnPrevPage = function() {
+
+        };
+    }]);
+
     app.controller('EmployerDashboardCtrl', ['$scope', function($scope){
-        
+
+        $scope.PostedJobs = {
+            start : 1,
+            end : 5,
+            total : 10,
+            jobs : [
+            {
+                id : 1,
+                title : 'job title',
+                employer : 'employer',
+                posted_days : 0,
+                expire_days : 1,
+                candidates : {
+                    'new' : 100,
+                    yes : 10,
+                    no : 5,
+                    matches : 50
+                },
+                job_hours : 10
+            }]
+        };
+
+        $scope.OnEditPost = function(id) {
+        };
+
+        $scope.OnRemovePost = function(id) {
+
+        };
+
+        $scope.OnExtendPost = function(id) {
+
+        };
+
+
+        $scope.OnViewCandidates = function(id, type){
+            if(type === 'new')
+            {
+
+            }
+            else if(type === 'yes')
+            {
+
+            }
+            else if(type === 'no')
+            {
+
+            }
+            else if(type === 'matches')
+            {
+
+            }
+        };
     }]);
 
     app.controller('JobSearchHomeCtrl', ['SearchAPI', 'StaticAPI', '$scope', '$location', function(SearchAPI, StaticAPI, $scope, $location){
@@ -199,7 +351,6 @@
                     name : '',
                     lat : 0,
                     lon : 0
-                    }
                 }
             };
             return params;
@@ -207,15 +358,15 @@
 
         this.GetSearchParams = function() {
             return angular.copy(this.SearchParams);
-        }
+        };
 
         this.SetSearchParams = function(params) {
             this.SearchParams = angular.copy(params);
-        }
+        };
 
         this.NoResults = function() {
             return this.SearchResults.total === 0;
-        }
+        };
 
         this.SearchParams = this.GetEmptySearchParams();
     }]);
@@ -487,8 +638,125 @@
 
     }] );
 
-    app.controller('JobPostViewCtrl', ['$scope', function($scope){
+    app.controller('JobPostViewCtrl', 
+        ['StaticAPI', '$scope', '$window', '$http', 
+        function(StaticAPI, $scope, $window, $http){
+        $scope.StaticAPI = StaticAPI;
         
+        $scope.Job = {
+            id : 1,
+            title : 'bar server',
+            employer : 'keg',
+            description : 'this is some shit\n\nttell me more',
+            externalurl : '',
+            postdays : 4,
+            postdate : null,
+            total_hours : null,
+            match_hours : null,
+            availability_hours : null,
+            //job hours match
+            job_hours_match : false,
+            job_hours_match_solid : 3,
+            job_hours_match_empty : 1,
+            //availability stars
+            availability_match : false,
+            availability_match_solid : 0,
+            availability_match_empty : 4,
+            //show applied
+            applied : false
+        };
+
+        $scope.getTimes=function(n){
+            return new Array(n);
+        };
+
+
+        $scope.Application = {
+            jobid : $scope.Job.id,
+            name : '',
+            email : '',
+            phone : '',
+            resume : '',
+            availability : StaticAPI.GetFullAvailability(),
+            availability_hours : null
+        };
+
+        $scope.ApplicationError = null;
+        $scope.ApplicationErrorMessage = null;
+        $scope.ApplicationSubmitting = false;
+
+
+                // There were some errors with your registration. Please check the form and try again.
+
+        $scope.ShowApplication = false;
+        $scope.ShowApplicationSuccess = false;
+
+        $scope.ToggleSave = function() {
+            alert("saved it!");
+        };
+
+        $scope.OnEmail = function() {
+            alert("e-mail it!");
+        }
+
+        $scope.OnApply = function() {
+            if($scope.Job.externalurl || $scope.Job.externalurl.length > 0)
+            {
+                $window.open($scope.Job.externalurl);
+            }
+            else
+            {
+                $scope.ShowApplication = true;
+            }
+        };
+
+        $scope.ShowApplicationErrorMessage = function(msg)
+        {
+            $scope.ApplicationErrorMessage = msg;
+        }
+
+        $scope.OnSubmitApplication = function() {
+
+            $scope.ApplicationError = null;
+            $scope.ApplicationErrorMessage = null;
+            $scope.ApplicationSubmitting = true;
+            
+            var config = {
+                method: 'POST',
+                url: '/rogue/submit_jobapplication.php',
+                data: $scope.Application
+            };
+            console.log(config);
+
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(data);
+                if(!data.ok)
+                {
+                    $scope.ShowApplicationErrorMessage(data.result);
+                }
+                else
+                {
+                    if(data.result.errors)
+                    {
+                        $scope.ApplicationError =  data.result.errors;
+                        $scope.ShowApplicationErrorMessage('Your application had some problem(s). Please check and resubmit.');
+                    }
+                    else
+                    {
+                        $scope.Job.applied = true;
+                        $scope.ShowApplication = false;
+                        $scope.ShowApplicationSuccess = true;
+                    }
+                }
+                $scope.ApplicationSubmitting = false;
+            });
+            $promise.error(function(data, status, headers, config) {
+                console.log(data);
+                $scope.ApplicationSubmitting = false;
+                $scope.ShowApplicationErrorMessage('We could not process your application. Please try again later.');
+            });            
+        };
     }])
 
     app.controller('JobSeekerRegistrationController', 

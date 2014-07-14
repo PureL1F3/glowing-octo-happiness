@@ -1,0 +1,101 @@
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Job Post</title>
+    <link href="/rogue/js/libs/jquery-ui-1.11.0/jquery-ui.css" rel="stylesheet" />
+    <link href="/rogue/js/libs/bootstrap-3.2.0-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/rogue/css/style.css" rel="stylesheet" />
+    <link href="/rogue/pink.flag/jplayer.pink.flag.css" rel="stylesheet" type="text/css" />
+    <link href="/rogue/style.css" rel="stylesheet" type="text/css" />
+    <style>
+    </style>
+</head>
+<div class="panel" ng-class="{ 'panel-success' :IsCandidates('Yes'), 'panel-warning' : IsCandidates('New'), 'panel-danger' : IsCandidates('No') }" ng-app="rogue">
+    <div class="panel-body">
+        <a ng-click="OnBackToPostedJobs()">← <u>Back To My Posted Jobs</u></a>
+        <h4>{{Job.title}}<span class="label label-success pull-right" ng-hide="Job.expired">Active</span><span class="label label-danger pull-right" ng-show="Job.expired">Expired</span></h4>
+        <h5>{{Job.employer}}</h5>
+        <p>
+            <span ng-show="Job.posted_days==0">Posted today</span>
+            <span ng-hide="Job.posted_days==0">Posted {{Job.posted_days}} day(s) ago</span>
+            |
+            <span ng-show="Job.expire_days==0"> Expires today</span
+            <span ng-hide="Job.expire_days==0"> Expires in {{Job.expire_days}} day(s)</span>
+        </p>
+        <div>
+            <label><a ng-click="OnEditPost(Job.id)"><span class="glyphicon glyphicon-pencil"></span>&nbsp;<u>Edit Post</u></a></label>
+            <br>
+            <label><a ng-click="OnRemovePost(Job.id)"><span class="glyphicon glyphicon-remove"></span>&nbsp;<u>Remove Post</u></a></label>
+            <br>
+            <label><a ng-click="OnExtendPost(Job.id)"><span class="glyphicon glyphicon-time"></span>&nbsp;<u>Extend Post by 7 Days</u></a></label>
+            <br>
+            <label><span class="glyphicon glyphicon-user"></span>&nbsp;View Candidates</label>
+            <div>
+                <a ng-click="OnViewCandidates(Job.id, 'new')"><span class="badge alert-warning">&nbsp;&nbsp;&nbsp;&nbsp;New&nbsp;&nbsp;&nbsp;&nbsp;<br><br>{{Job.candidates.new}}</span></a>
+                <a ng-click="OnViewCandidates(Job.id, 'yes')"><span class="badge alert-success">&nbsp;&nbsp;&nbsp;&nbsp;Yes&nbsp;&nbsp;&nbsp;&nbsp;<br><br>{{Job.candidates.yes}}</span></a>
+                <a ng-click="OnViewCandidates(Job.id, 'no')"><span class="badge alert-danger">&nbsp;&nbsp;&nbsp;&nbsp;No&nbsp;&nbsp;&nbsp;&nbsp;<br><br>{{Job.candidates.no}}</span></a>
+                <a ng-click="OnViewCandidates(Job.id, 'matches')"><span class="badge alert-info">StreamHires<br><br><span class="glyphicon glyphicon-search"></span>&nbsp;&nbsp;&nbsp;{{Job.candidates.matches}}&nbsp;&nbsp;&nbsp;</span></a>
+            </div>
+        </div>
+    </div>
+    <div class="panel-heading">
+        <h2 class="panel-title">{{Candidates.type}} Candidates<small ng-show="Candidates.profiles" class="pull-right" style="color: #bdc3c7;">{{Candidates.start}} to {{Candidates.end}} of {{Candidates.total}}</small></span></h2>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item" ng-hide="Candidates.profiles">
+            <div>
+                You have not set any candidates as <span class="badge alert-success">Yes</span> candidates. You can set <span class="badge alert-warning">New</span> and <span class="badge alert-danger">No</span> candidates as <span class="badge alert-success">Yes</span> and to make them visible here.
+            </div>
+        </li>
+        <li class="list-group-item" ng-hide="true">
+            <div class="form-group">
+                <label>Resume Keywords</label>
+                <input class="form-control" type="text" />
+                <br>
+                <div class="text-center">
+                    <button type="button" class="btn btn-success">Search</button>
+                    <button type="button" class="btn btn-warning">Reset</button>
+                </div>
+            </div>
+        </li>
+        <li class="list-group-item" ng-repeat="Candidate in Candidates.profiles">
+            <h4 style="margin-top: 5px; margin-bottom: 1px; color: #03AB52; font-weight: normal;">{{Candidate.name}}</h4>
+            <p><span class="badge" ng-class="{ 'alert-success' :IsCandidates('Yes'), 'alert-warning' : IsCandidates('New'), 'alert-danger' : IsCandidates('No') }">{{Candidates.type}}</span>
+               <span ng-show="Candidate.application_days==0">Submitted today</span>
+               <span ng-hide="Candidate.application_days==0">Submitted {{Candidate.application_days}} day(s) ago</span>
+            <br>
+            <img src="icons/rogue_star.png" style="width: 16px; height: 16px;" 
+                ng-repeat="t in getTimes(Candidate.job_hours_match_solid) track by $index"/><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
+                ng-repeat="u in getTimes(Candidate.job_hours_match_empty) track by $index "/> Job Hours Match ({{Candidate.job_hours_match}} / {{Job.job_hours}})
+            <h5 data-toggle="collapse" data-target="#bs-example-navbar-collapse-1-{{Candidate.id}}" style="margin-top: 5px; margin-bottom: 1px; color: #03AB52; font-weight: normal;"><span class="glyphicon glyphicon-collapse-down"></span> <u>Resume</u></h5>
+            <div class="collapse" id="bs-example-navbar-collapse-1-{{Candidate.id}}">
+            {{Candidate.resume}}
+            </div>
+            <h5 data-toggle="collapse" data-target="#bs-example-navbar-collapse-2-{{Candidate.id}}" style="margin-top: 5px; margin-bottom: 1px; color: #03AB52; font-weight: normal;"><span class="glyphicon glyphicon-collapse-down"></span> <u>Availability</u></h5>
+            <div class="collapse" id="bs-example-navbar-collapse-2-{{Candidate.id}}">
+            <table class="table table-bordered table-condensed table-striped text-center">
+                <tr>
+                    <th></th>
+                    <th ng-repeat="day in StaticAPI.AvailabilityDays">{{day}}</th>
+                </tr>
+                <tr ng-repeat="period in StaticAPI.AvailabilityCategories">
+                    <td>{{period}}</td>
+                    <td ng-repeat="day in StaticAPI.AvailabilityDays">
+                        <input type="checkbox" disabled="disabled" ng-model="Candidate.availability[$index][$parent.$index]" />
+                    </td>
+                </tr>
+            </table>
+            </div>
+            <button type="button" class="btn btn-success btn-sm" ng-hide="Candidates.type=='Yes'">Yes</button>
+            <button type="button" class="btn btn-danger btn-sm" ng-hide="Candidates.type=='No'">No</button>
+            </p>
+        </li>
+        <li class="list-group-item">
+            <br>
+            <a ng-click="OnPrevPage()" ng-show="Candidates.start > 1">&nbsp;&nbsp;&nbsp;&larr; Prev</a>
+            <a ng-click="OnNextPage()" ng-show="Candidates.end < Candidates.total" class="pull-right">Next &rarr;&nbsp;&nbsp;&nbsp;</a>
+            <br><br>
+        </li>
+    </ul>
+</div>
