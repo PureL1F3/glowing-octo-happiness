@@ -10,6 +10,9 @@
         }).when('/employer/dashboard', {
             templateUrl : 'partials/employer-posted.html',
             controller : 'EmployerDashboardCtrl'
+        }).when('/jobseeker/dashboard', {
+            templateUrl : 'partials/jobseeker-dashboard.html',
+            controller : 'JobSeekerDashboardCtrl'
         }).when('/jobresults', {
             templateUrl : 'partials/jobsearch-results.html',
             controller : 'JobSearchResultsCtrl'
@@ -22,7 +25,7 @@
         }).when('/registration/employer/:next', {
             templateUrl : 'partials/registration-employer.html',
             controller : 'EmployerRegistrationController'
-        }).when('/registration/employee/:jobid', {
+        }).when('/registration/jobseeker', {
             templateUrl : 'partials/registration-employee.html',
             controller : 'JobSeekerRegistrationController'
         }).otherwise({
@@ -42,7 +45,7 @@
         };
 
         $scope.OnPostJob = function() {
-            $location.path('/registration/employer/post');
+            $location.path('/registration/jobseeker');
         };
 
         $scope.SearchParams = SearchAPI.GetSearchParams();
@@ -118,7 +121,7 @@
                     }
                     else
                     {
-                        alert("jobpost success");
+                        
                     }
                 }
                 $scope.FormSubmitting = false;
@@ -157,7 +160,7 @@
         $scope.OnGotLocationSuccess = function(position) {
             $scope.$apply(function() {
                 that.LoadingLocationMessage = null;
-                that.Jobpost.location.name = 'My location';
+                that.Jobpost.location.name = 'Current';
                 that.Jobpost.location.lat = position.coords.latitude;
                 that.Jobpost.location.lon = position.coords.longitude;
             });
@@ -219,7 +222,7 @@
     }]);
 
     app.service('StaticAPI', ['$http', function($http) {
-        that = this;
+        var that = this;
 
         this.JobFunctions = [];
 
@@ -272,7 +275,7 @@
                 }
             });
             $promise.error(function(data, status, headers, config) {
-                this.FailedToLoad();
+                that.FailedToLoad();
             });
         };
 
@@ -376,6 +379,7 @@
             $scope.ErrorMessage  = null;
             $scope.RegistrationError = null;
             $scope.RegistrationSubmitting = true;
+            $scope.RegistrationErrorMessage = null;
 
             var config = {
                 method: 'POST',
@@ -489,33 +493,192 @@
     }])
 
     app.controller('JobSeekerRegistrationController', 
-        ['$scope', 'StaticAPI', 'AccountAPI', 'JobSeekerAPI', 
-        function($scope, StaticAPI, AccountAPI, JobSeekerAPI) {
+        ['$scope', '$http', '$location', 'StaticAPI', 'AccountAPI', 'JobSeekerAPI', 
+        function($scope, $http, $location, StaticAPI, AccountAPI, JobSeekerAPI) {
+
+        var that = $scope;
 
         $scope.StaticAPI = StaticAPI;
         $scope.JobSeekerAPI = JobSeekerAPI;
         $scope.AccountAPI = AccountAPI;
 
+        //forgot password
+        $scope.OnForgotPassword = function() {
+            $scope.LoginError = null;
+            $scope.LoginSubmitting = false;
+            $scope.LoginErrorMessage = null;
+
+            if($scope.Login.email.trim().length < 1)
+            {
+                $scope.LoginError = { "email" : "Enter your account-email so we can send you a password reset link."};
+            }
+            else
+            {
+                $scope.LoginError = { "email" : "We have sent you a password reset link."};
+            }
+        };
 
         $scope.Registration = {
-            "account" : $scope.AccountAPI.Account,
-            "location" : "",
-            "lat" : "",
-            "long" : "",
-            "distance" : "",
-            "resume" : "",
-            "availability" : $scope.StaticAPI.GetFullAvailability(),
-            "jobtypes" : [],
-            "jobfunctions" : []
+            location : {
+                name: '',
+                lat: 0,
+                lon: 0
+            },
+            account : {
+                name : "",
+                phone : "",
+                email : "",
+                password : "",
+            },
+            distance : "",
+            resume : "",
+            availability : $scope.StaticAPI.GetFullAvailability(),
+            jobtypes : [],
+            jobfunctions : []
         };
 
         $scope.RegistrationError = null;
         $scope.RegistrationSubmitting = false;
-
-        $scope.SubmitForm = function() {
-            alert("registering job seeker");            
+        $scope.RegistrationErrorMessage = null;
+        $scope.ShowRegistrationErrorMessage = function(message) {
+            $scope.RegistrationErrorMessage = message;
         };
 
+        $scope.SubmitRegistration = function() {
+            $scope.ErrorMessage  = null;
+            $scope.RegistrationError = null;
+            $scope.RegistrationSubmitting = true;
+            $scope.RegistrationErrorMessage = null;
+
+            var config = {
+                method: 'POST',
+                url: '/rogue/register_jobseeker.php',
+                data: $scope.Registration
+            };
+
+            console.log(config);
+
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(config);
+                console.log(data);
+                if(!data.ok)
+                {
+                    $scope.ShowRegistrationErrorMessage(data.result);
+                }
+                else
+                {
+                    if(data.result.errors)
+                    {
+                        $scope.RegistrationError =  data.result.errors;
+                        $scope.ShowRegistrationErrorMessage('Your registration had some problem(s). Please check and resubmit.');
+                    }
+                    else
+                    {
+                        AccountAPI.Account = data.result.account;
+                        JobSeekerAPI.Employee = data.result.employee;
+
+                        $scope.Redirect();
+                    }
+                }
+                $scope.RegistrationSubmitting = false;
+
+            });
+            $promise.error(function(data, status, headers, config) {
+                console.log(data);
+                $scope.RegistrationSubmitting = false;
+                $scope.ShowRegistrationErrorMessage('We could not process your registration. Please try again later.');
+            });
+        };
+        //login ---------------------------------------------
+        $scope.Login = {
+            "email" : "",
+            "password" : ""
+        }
+        $scope.LoginError = null;
+        $scope.LoginSubmitting = false;
+        $scope.LoginErrorMessage = null;
+        $scope.ShowLoginErrorMessage = function(message) {
+            $scope.LoginErrorMessage = message;
+        };
+        $scope.SubmitLogin = function() {
+            $scope.LoginError = null;
+            $scope.LoginSubmitting = false;
+            $scope.LoginErrorMessage = null;
+
+            var config = {
+                method: 'POST',
+                url: '/rogue/login_jobseeker.php',
+                data: $scope.Login
+            };
+            console.log(config);
+
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(data);
+                if(!data.ok)
+                {
+                    $scope.ShowLoginErrorMessage(data.result);
+                }
+                else
+                {
+                    if(data.result.errors)
+                    {
+                        $scope.LoginError =  data.result.errors;
+                        $scope.ShowLoginErrorMessage('Your login had some problem(s). Please check and resubmit.');
+                    }
+                    else
+                    {
+                        AccountAPI.Account = data.result.account;
+                        JobSeekerAPI.Employee = data.result.employee;
+
+                        $scope.Redirect();
+                    }
+                }
+                $scope.LoginSubmitting = false;
+            });
+            $promise.error(function(data, status, headers, config) {
+                console.log(data);
+                $scope.LoginSubmitting = false;
+                $scope.ShowLoginErrorMessage('We could not process your login. Please try again later.');
+            });            
+        };
+        $scope.Redirect = function() {
+            $location.path('/jobseeker/dashboard');
+        };
+
+        $scope.LoadingLocationMessage = null;
+        $scope.GetLocation = function() {
+            $scope.GettingLocation = true;
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition($scope.OnGotLocationSuccess, $scope.OnGotLocationError, { timeout: 3000 });
+                setTimeout(function(){
+                    if($scope.LoadingLocationMessage) {
+                        $scope.OnGotLocationError();
+                }}, 4000);
+                $scope.LoadingLocationMessage = 'Loading...';
+            }
+            else
+            {
+                $scope.LoadingLocationMessage = 'Please enter your postal code - your location is not available.';
+            }
+        }
+
+        $scope.OnGotLocationError = function(error) {
+            $scope.$apply(function() {
+                that.GettingLocation = false;
+                that.LoadingLocationMessage = 'Please enter your postal code - your location is not available.';
+            });
+        };
+
+        $scope.OnGotLocationSuccess = function(position) {
+            $scope.$apply(function() {
+                that.LoadingLocationMessage = null;
+                that.Registration.location.name = 'Current';
+                that.Registration.location.lat = position.coords.latitude;
+                that.Registration.location.lon = position.coords.longitude;
+            });
+        };
     }]);
 
     app.controller('JobPostCandidateSeekerController', 

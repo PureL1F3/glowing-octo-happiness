@@ -125,7 +125,7 @@ class StreamHireDB
             }
             else
             {
-                $value['employee'] = array( 'resume' => $object->employee_resume, 'location' => $object->employee_location, 
+                $value['jobseeker'] = array( 'resume' => $object->employee_resume, 'location' => $object->employee_location, 
                                             'lat' => $object->employee_lat, 'lon' => $object->employee_lon, 'distance' => $object->employee_distance);
             }
         }
@@ -164,7 +164,7 @@ class StreamHireDB
             }
             else
             {
-                $value['employee'] = array( 'resume' => $object->employee_resume, 'location' => $object->employee_location, 
+                $value['jobseeker'] = array( 'resume' => $object->employee_resume, 'location' => $object->employee_location, 
                                             'lat' => $object->employee_lat, 'lon' => $object->employee_lon, 'distance' => $object->employee_distance);
             }
         }
@@ -238,7 +238,7 @@ class StreamHireDB
     }
 
 
-    function jobtypes() {
+    function jobtypes($ids_array_only=false) {
         syslog(LOG_INFO, "Calling StreamHireDB:jobtypes"); 
         $types = array();
         $sql = "select name, id from jobtype";
@@ -249,13 +249,21 @@ class StreamHireDB
         }
         while($row = $result->fetch_array())
         {
-            array_push($types, array('id' => intval($row['id']), 'name' => $row['name']));
+            if($ids_array_only)
+            {
+                array_push($types, intval($row['id']));
+            }
+            else
+            {
+                array_push($types, array('id' => intval($row['id']), 'name' => $row['name']));
+            }
+            
         }
 
         return $this->result(true, $types);
     }
 
-    function jobfunctions() {
+    function jobfunctions($ids_array_only = false) {
         syslog(LOG_INFO, "Calling StreamHireDB:jobfunctions"); 
 
         $types = array();
@@ -267,7 +275,14 @@ class StreamHireDB
         }
         while($row = $result->fetch_array())
         {
-            array_push($types, array('id' => intval($row['id']), 'name' => $row['name']));
+            if($ids_array_only)
+            {
+                array_push($types, intval($row['id']));
+            }
+            else
+            {
+                array_push($types, array('id' => intval($row['id']), 'name' => $row['name']));
+            }
         }
 
         return $this->result(true, $types);
@@ -317,7 +332,6 @@ class StreamHireDB
             }
 
         }
-        var_dump($availability);
         if(!$has_availability)
         {
             return;
@@ -325,7 +339,6 @@ class StreamHireDB
 
         $sql = rtrim($sql, ",");
         $sql .= ";";
-        syslog(LOG_INFO, "SQL: " . $sql); 
         $result = $this->_con->query($sql);
         if(!$result)
         {
@@ -344,6 +357,171 @@ class StreamHireDB
             return $this->mysql_error();
         }
         return $this->result(true);
+    }
+
+    function create_jobseeker($account_name, $account_email, $account_phone, 
+                $resume, $location_name, $location_lat, 
+                $location_lon, $radius, $salt, $hash)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:create_jobseeker"); 
+        $sql_account_name = $this->_con->real_escape_string($account_name);
+        $sql_account_email = $this->_con->real_escape_string($account_email);
+        $sql_account_phone = $this->_con->real_escape_string($account_phone);
+        $sql_resume = $this->_con->real_escape_string($resume);
+        $sql_location_name = $this->_con->real_escape_string($location_name);
+        $sql = "CALL register_jobseeker('$sql_account_name', '$sql_account_email', '$sql_account_phone', '$sql_resume', '$sql_location_name', $location_lat, $location_lon, $radius, '$salt', '$hash');";
+        syslog(LOG_INFO, "$sql"); 
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $object = $result->fetch_object();
+        $this->mysql_clean_buffer();
+        $value = NULL;
+        if($object)
+        {
+            syslog(LOG_INFO, 'Created job seeker id #:'.$object->id); 
+            $value = array('id' => $object->id);
+        }
+        return $this->result(true, $value);
+    }
+
+    function create_jobseeker_jobtypes($userid, $jobtypes)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:create_jobseeker_jobtypes"); 
+        $has_jobtypes = false;
+        $sql = "insert into jobseeker_jobtypes(jobseekerid, jobtypeid) values ";
+        foreach($jobtypes as $f)
+        {
+            $sql .= "($userid, $f),";
+            $has_jobtypes = true;
+        }
+        if(!$has_jobtypes)
+        {
+            return;
+        }
+
+        $sql = rtrim($sql, ",");
+        $sql .= ";";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        return $this->result(true);
+    }
+
+    function create_jobseeker_jobfunctions($userid, $jobfunctions)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:create_jobseeker_jobfunctions"); 
+        $has_jobfunctions = false;
+        $sql = "insert into jobseeker_jobfunctions(jobseekerid, jobfunctionid) values ";
+        foreach($jobfunctions as $f)
+        {
+            $sql .= "($userid, $f),";
+            $has_jobfunctions = true;
+        }
+        if(!$has_jobfunctions)
+        {
+            return;
+        }
+
+        $sql = rtrim($sql, ",");
+        $sql .= ";";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        return $this->result(true);
+    }
+
+    function create_jobseeker_availability($userid, $availability, $AvailabilityDays_count, $AvailabilityCategories_count)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:create_jobseeker_availability"); 
+        $has_availability = false;
+        $sql = "insert into jobseeker_availability(jobseekerid, day, hour) values ";
+        for($i = 0; $i < $AvailabilityDays_count; $i++)
+        {
+            for($j = 0; $j < $AvailabilityCategories_count; $j++)
+            {
+                if($availability[$i][$j])
+                {
+                    $has_availability = true;
+                    $sql .= "($userid, $i, $j),";
+                }
+            }
+
+        }
+        if(!$has_availability)
+        {
+            return;
+        }
+
+        $sql = rtrim($sql, ",");
+        $sql .= ";";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        return $this->result(true);
+    }
+
+    function user_availability($userid, $availability)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:user_availability for userid $userid"); 
+        $sql = "select day, hour from jobseeker_availability where jobseekerid=$userid";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($row = $result->fetch_array())
+        {
+            $day = intval($row['day']);
+            $hour = intval($row['hour']);
+
+            $availability[$day][$hour] = true;
+        }
+
+        return $this->result(true, $availability);
+    }
+
+    function user_jobtypes($userid)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:user_jobtypes for userid $userid"); 
+        $jobtypes = array();
+        $sql = "select jobtypeid from jobseeker_jobtypes where jobseekerid=$userid";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($row = $result->fetch_array())
+        {
+            array_push($jobtypes, intval($row['jobtypeid']));
+        }
+
+        return $this->result(true, $jobtypes);
+    }
+
+    function user_jobfunctions($userid)
+    {
+        $jobfunctions = array();
+        $sql = "select jobfunctionid from jobseeker_jobfunctions where jobseekerid=$userid";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($row = $result->fetch_array())
+        {
+            array_push($jobfunctions, intval($row['jobfunctionid']));
+        }
+
+        return $this->result(true, $jobfunctions);
     }
 }
 
