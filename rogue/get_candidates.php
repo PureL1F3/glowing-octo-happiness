@@ -57,7 +57,7 @@ if(!$result['ok'])
 }
 else if(is_null($result['result']))
 {
-    finish(false, "Invalid job id.");
+    finish(false, "You need to be logged in to view this page.");
 }
 $userid = $result['result']['id'];
 

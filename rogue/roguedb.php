@@ -666,7 +666,7 @@ class StreamHireDB
         }
         if($row = $result->fetch_array())
         {
-            $rows = $object['rows'];
+            $rows = $row['rows'];
         }
 
         return $this->result(true, $rows);
@@ -798,15 +798,18 @@ class StreamHireDB
         $jobs = array();
 
         $offset = ($page - 1) * $results;
-        $sql = "select j.id, j.title, e.name, DATEDIFF(NOW(), j.created), DATEDIFF(j.expires, NOW()), " .
-        "(select count(applicationid) from applications where jobid = 16 and isyes is null) new_candidates, " . 
-        "(select count(applicationid) from applications where jobid = 16 and isyes = 1) yes_candidates, " .
-        "(select count(applicationid) from applications where jobid = 16 and isyes = 0) no_candidates, " .
+        $sql = "select j.id, j.title, e.name employer, DATEDIFF(NOW(), j.created) posted_days, DATEDIFF(j.expires, NOW()) expire_days, " .
+        "coalesce(a.ct, 0) new_candidates, " . 
+        "coalesce(b.ct, 0) yes_candidates, " .
+        "coalesce(c.ct, 0) no_candidates, " .
         "0 match_candidates, total_hours " .
         "from jobpost j " .
         "join employer e on j.employerid=e.userid " .
-        "join applications a on a.jobid = j.id " .
+        "left join (select jobid, count(applicationid) ct from applications where isyes is null group by jobid) a on a.jobid=j.id " .
+        "left join (select jobid, count(applicationid) ct from applications where isyes=1 group by jobid) b on b.jobid=j.id " .
+        "left join (select jobid, count(applicationid) ct from applications where isyes=0 group by jobid) c on c.jobid=j.id " .
         "where j.employerid=$userid " .
+        "group by j.id order by j.created desc " .
         "limit $offset, $results; ";
         $result = $this->_con->query($sql);
         if(!$result)

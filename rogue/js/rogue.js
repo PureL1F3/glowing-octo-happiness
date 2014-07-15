@@ -47,7 +47,7 @@
                     jobid : jobid,
                     candidate_type : candidate_type,
                     page : page
-                };
+                }
             };
             console.log(config);
             $promise = $http(config);
