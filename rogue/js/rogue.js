@@ -36,8 +36,39 @@
         });
     }]);
 
-    app.controller('EmployerJobCandidatesCtrl', ['$scope', 'StaticAPI', function($scope, StaticAPI){
+    app.controller('EmployerJobCandidatesCtrl', ['$scope', '$http', 'StaticAPI', function($scope, $http, StaticAPI){
         $scope.StaticAPI = StaticAPI;
+        $scope.Load = function(jobid, candidate_type, page)
+        {
+            var config = {
+                method: 'GET',
+                url: '/rogue/get_candidates.php',
+                data: {
+                    jobid : jobid,
+                    candidate_type : candidate_type,
+                    page : page
+                };
+            };
+            console.log(config);
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(config);
+                console.log(data);
+                if(!data.ok)
+                {
+                    console.log("SUCCESS - Failed to load: " + data.result);
+                }
+                else
+                {
+                    console.log("SUCCESS - Loaded");
+                    $scope.Job = data.result.job;
+                    $scope.Candidates = data.result.candidates;
+                }
+            });
+            $promise.error(function(data, status, headers, config) {
+                console.log("ERROR - Failed to load: " + status);
+            });
+        };            
 
         $scope.Job = {
             id : 1,
@@ -62,6 +93,8 @@
             profiles : [{
                 id : 10,
                 name : 'Anna Vassilovski',
+                email : 'anna@mail.com',
+                phone : '+416-239-0890',
                 application_days : 0,
                 job_hours_match : 5,
                 job_hours_match_solid : 2,

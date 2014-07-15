@@ -792,6 +792,169 @@ class StreamHireDB
         return $this->result(true);
     }
 
+    function get_employer_jobposts($userid, $page, $results)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:get_employer_jobposts");
+        $jobs = array();
+
+        $offset = ($page - 1) * $results;
+        $sql = "select j.id, j.title, e.name, DATEDIFF(NOW(), j.created), DATEDIFF(j.expires, NOW()), " .
+        "(select count(applicationid) from applications where jobid = 16 and isyes is null) new_candidates, " . 
+        "(select count(applicationid) from applications where jobid = 16 and isyes = 1) yes_candidates, " .
+        "(select count(applicationid) from applications where jobid = 16 and isyes = 0) no_candidates, " .
+        "0 match_candidates, total_hours " .
+        "from jobpost j " .
+        "join employer e on j.employerid=e.userid " .
+        "join applications a on a.jobid = j.id " .
+        "where j.employerid=$userid " .
+        "limit $offset, $results; ";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($object = $result->fetch_object())
+        {
+            $job = array('id' => $object->id, 'title' => $object->title, 
+                'employer' => $object->employer, 'posted_days' => $object->posted_days,
+                'expire_days' => $object->expire_days, 
+                'candidates' => array(
+                    'new' => $object->new_candidates,
+                    'yes' => $object->yes_candidates,
+                    'no' => $object->no_candidates,
+                    'matches' => $object->match_candidates),
+                'job_hours' => $object->total_hours
+                );
+            array_push($jobs, $job);
+        }
+
+        return $this->result(true, $jobs);
+    }
+
+    function get_employer_jobpost($userid, $jobid)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:get_employer_jobpost");
+        $job = null;
+
+        $sql = "select j.id, j.title, e.name employer, DATEDIFF(NOW(), j.created) posted_days, DATEDIFF(j.expires, NOW()) expire_days, " .
+        "(select count(applicationid) from applications where jobid = 16 and isyes is null) new_candidates, " . 
+        "(select count(applicationid) from applications where jobid = 16 and isyes = 1) yes_candidates, " .
+        "(select count(applicationid) from applications where jobid = 16 and isyes = 0) no_candidates, " .
+        "0 match_candidates, total_hours " .
+        "from jobpost j " .
+        "join employer e on j.employerid=e.userid " .
+        "join applications a on a.jobid = j.id " .
+        "where j.id=$jobid and j.employerid=$userid;";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $object = $result->fetch_object();
+        if($object)
+        {
+            
+            $job = array('id' => $object->id, 'title' => $object->title, 
+                'employer' => $object->employer, 'posted_days' => $object->posted_days,
+                'expire_days' => $object->expire_days, 
+                'candidates' => array(
+                    'new' => $object->new_candidates,
+                    'yes' => $object->yes_candidates,
+                    'no' => $object->no_candidates,
+                    'matches' => $object->match_candidates),
+                'job_hours' => $object->total_hours
+                );
+        }
+        return $this->result(true, $job);
+    }
+
+    function get_employer_jobpost_candidates($userid, $jobid, $candidate_type, $page, $results)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:get_employer_jobpost_candidates");
+        $candidates = array();
+        $offset = ($page - 1) * $results;
+        $sql = "select j.applicationid, j.applicantid, j.name, j.email, j.phone, j.resume, " .
+        "datediff(now(), j.created) application_days from applications j where j.jobid=$jobid and ";
+
+        if($candidate_type == 'New')
+        {
+            $sql .= " j.isyes is null ";
+
+        }
+        else if($candidate_type == 'Yes')
+        {
+            $sql .= " j.isyes=1 ";
+        }
+        else if($candidate_type == 'No')
+        {
+            $sql .= " j.isyes=0 ";
+        }
+
+        $sql .=" limit $offset, $results;";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($object = $result->fetch_object())
+        {
+            $candidate = array('id' => intval($object->applicationid), 'applicantid' => intval($object->applicantid), 
+                'name' => $object->name, 'email' => $object->email, 'phone' => $object->phone,
+                'resume' => $object->resume, 'application_days' => intval($object->application_days), 'job_hours_match' => 0);
+            $candidates[$candidate['id']] = $candidate;
+        }
+        return $this->result(true, $candidates);
+    }
+
+    function get_candidates_availability($userid, $jobid, $candidates, $job)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:get_candidates_availability");
+        $sql = "select applicationid, day, hour from application_availability where applicationid in (";
+        foreach($candidates as $c_id => $c)
+        {
+            $sql .= "$c_id,";
+        }
+        $sql = rtrim($sql, ',');
+        $sql .= ");";
+
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($object = $result->fetch_object())
+        {
+            $id = intval($object->applicationid);
+            $day = intval($object->day);
+            $hour = intval($object->hour);
+            $candidates[$id]['availability'][$day][$hour] = true;
+            if($job['availability'][$day][$hour])
+            {
+                $candidates[$id]['job_hours_match'] += 1;
+            }
+        }
+        return $this->result(true, $candidates);
+    }
+
+    function get_jobpost_availability($jobid, $job)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:get_jobpost_availability");
+        $sql = "select day, hour from jobpost_availability where jobid=$jobid";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($object = $result->fetch_object())
+        {
+            $day = intval($object->day);
+            $hour = intval($object->hour);
+            $job['availability'][$day][$hour] = true;
+        }
+        return $this->result(true, $job);
+
+    }
+
 }
 
 ?>

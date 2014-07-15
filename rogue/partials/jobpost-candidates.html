@@ -44,8 +44,14 @@
     </div>
     <ul class="list-group">
         <li class="list-group-item" ng-hide="Candidates.profiles">
-            <div>
-                You have not set any candidates as <span class="badge alert-success">Yes</span> candidates. You can set <span class="badge alert-warning">New</span> and <span class="badge alert-danger">No</span> candidates as <span class="badge alert-success">Yes</span> and to make them visible here.
+            <div  ng-show="IsCandidates('Yes')">
+                You have not set any candidates as <span class="badge alert-success">Yes</span> candidates. You can set <span class="badge alert-warning">New</span> and <span class="badge alert-danger">No</span> candidates as <span class="badge alert-success">Yes</span> to make them visible here.
+            </div>
+            <div  ng-show="IsCandidates('New')">
+                You don't have any <span class="badge alert-warning">New</span> candidates.
+            </div>
+            <div  ng-show="IsCandidates('No')">
+                You have not set any candidates as <span class="badge alert-danger">No</span> candidates. You can set <span class="badge alert-warning">New</span> and <span class="badge alert-success">Yes</span> candidates as <span class="badge alert-danger">No</span> to make them visible here.
             </div>
         </li>
         <li class="list-group-item" ng-hide="true">
