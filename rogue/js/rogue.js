@@ -7,13 +7,16 @@
         $routeProvider.when('/', {
             templateUrl : 'partials/jobsearch-home.html',
             controller : 'JobSearchHomeCtrl'
-        }).when('/employer/dashboard', {
+        }).when('/account', {
+            templateUrl : 'partials/account-picker.html',
+            controller : 'AccountPickerCtrl'
+        }).when('/employer/dashboard/:page', {
             templateUrl : 'partials/employer-posted.html',
             controller : 'EmployerDashboardCtrl'
         }).when('/employer/job/:jobid/candidates/:type/:page', {
             templateUrl : 'partials/jobpost-candidates.html',
             controller : 'EmployerJobCandidatesCtrl'
-        }).when('/jobseeker/dashboard', {
+        }).when('/jobseeker/dashboard/:page', {
             templateUrl : 'partials/jobseeker-dashboard.html',
             controller : 'JobSeekerDashboardCtrl'
         }).when('/jobresults', {
@@ -25,6 +28,9 @@
         }).when('/viewjob/:id', {
             templateUrl : 'partials/jobpost-view.html',
             controller : 'JobPostViewCtrl'
+        }).when('/registration/employer', {
+            templateUrl : 'partials/registration-employer.html',
+            controller : 'EmployerRegistrationController'
         }).when('/registration/employer/:next', {
             templateUrl : 'partials/registration-employer.html',
             controller : 'EmployerRegistrationController'
@@ -36,17 +42,54 @@
         });
     }]);
 
-    app.controller('EmployerJobCandidatesCtrl', ['$scope', '$http', 'StaticAPI', function($scope, $http, StaticAPI){
+    app.controller('NavCtrl', ['$scope', function($scope){
+        $scope.CurrentView = 'findjobs';
+        $scope.ShowFindJobs = true;
+        $scope.ShowAccount = true;
+        $scope.ShowLogout = true;
+
+        $scope.SetCurrentView = function(view)
+        {
+            $scope.CurrentView = view;
+        }
+
+
+        function OnAccount = function() {
+
+        };
+        
+        function OnLogout = function() {
+
+        };
+    }])
+
+    app.controller('JobSeekerDashboardCtrl', ['$scope', function($scope){
+        
+    }])
+
+    app.controller('AccountPickerCtrl', ['$scope', '$location', function($scope, $location){
+        $scope.OnJobSeekerAccount = function()
+        {
+            $location.path('/registration/jobseeker');
+        };
+
+        $scope.OnEmployerAccount = function() {
+            $location.path('/registration/employer');
+        };
+    }])
+
+    app.controller('EmployerJobCandidatesCtrl', ['$scope', '$http', '$location', '$routeParams', '$anchorScroll', '$window', 'StaticAPI', 
+        function($scope, $http, $location, $routeParams, $anchorScroll, $window, StaticAPI){
         $scope.StaticAPI = StaticAPI;
-        $scope.Load = function(jobid, candidate_type, page)
+        $scope.Load = function()
         {
             var config = {
-                method: 'GET',
+                method: 'POST',
                 url: '/rogue/get_candidates.php',
                 data: {
-                    jobid : jobid,
-                    candidate_type : candidate_type,
-                    page : page
+                    jobid : $scope.JobId,
+                    candidate_type : $scope.CandidateType,
+                    page : $scope.Page
                 }
             };
             console.log(config);
@@ -63,6 +106,13 @@
                     console.log("SUCCESS - Loaded");
                     $scope.Job = data.result.job;
                     $scope.Candidates = data.result.candidates;
+                    $scope.start = data.result.start;
+                    $scope.end = data.result.end;
+                    $scope.total = data.result.total;
+
+                    //scroll to top of page
+                    $location.hash('top');
+                    $anchorScroll();
                 }
             });
             $promise.error(function(data, status, headers, config) {
@@ -70,39 +120,12 @@
             });
         };            
 
-        $scope.Job = {
-            id : 1,
-            title : 'job title',
-            employer : 'employer',
-            posted_days : 0,
-            expire_days : 1,
-            candidates : {
-                'new' : 100,
-                yes : 10,
-                no : 5,
-                matches : 50
-            },
-            job_hours : 10
-        };
+        $scope.Job = {};
+        $scope.Candidates = {};
 
-        $scope.Candidates = {
-            type : 'New',
-            start : 1,
-            end : 5,
-            total : 50,
-            profiles : [{
-                id : 10,
-                name : 'Anna Vassilovski',
-                email : 'anna@mail.com',
-                phone : '+416-239-0890',
-                application_days : 0,
-                job_hours_match : 5,
-                job_hours_match_solid : 2,
-                job_hours_match_empty : 2,
-                availability : StaticAPI.GetFullAvailability(),
-                resume : 'omgggg some stuff'
-                }]
-        };
+        $scope.start = 0;
+        $scope.end = 0;
+        $scope.total = 0;
 
         $scope.IsCandidates = function(type)
         {
@@ -114,112 +137,343 @@
         };
 
         $scope.OnBackToPostedJobs = function() {
-
+            $window.history.back();
         };
 
         $scope.OnViewCandidates = function(id, type){
             if(type === 'new')
             {
-
+                $scope.JobId = id;
+                $scope.CandidateType = 'New';
+                $scope.Page = 1;
+                $scope.Load();
             }
             else if(type === 'yes')
             {
-
+                $scope.JobId = id;
+                $scope.CandidateType = 'Yes';
+                $scope.Page = 1;
+                $scope.Load();
             }
             else if(type === 'no')
             {
-
+                $scope.JobId = id;
+                $scope.CandidateType = 'No';
+                $scope.Page = 1;
+                $scope.Load();
             }
             else if(type === 'matches')
             {
-
+                $location.path('/employer/job/' + id + '/matches');
             }
         };
 
+        $scope.DoesJobPostExpireInMoreThanSeven = function(expire_days) {
+            return expire_days >= 7;
+        }
+
         $scope.OnEditPost = function(id) {
+            $location.path('/employer/job/' + id + '/edit');
         };
 
         $scope.OnRemovePost = function(id) {
-
+            var config = {
+                method: 'POST',
+                url: '/rogue/remove_post.php',
+                data: {
+                    jobid : id
+                }
+            };
+            console.log(config);
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(config);
+                console.log(data);
+                if(!data.ok)
+                {
+                    console.log("SUCCESS - Failed to remove post: " + data.result);
+                }
+                else
+                {
+                    console.log("SUCCESS - removed post");
+                    $scope.Job.expire_days = 0;
+                    $scope.Job.expired = true;
+                }
+            });
+            $promise.error(function(data, status, headers, config) {
+                console.log("ERROR - Failed to removed post: " + status);
+            });
         };
 
         $scope.OnExtendPost = function(id) {
-
+            var config = {
+                method: 'POST',
+                url: '/rogue/extend_post.php',
+                data: {
+                    jobid : id
+                }
+            };
+            console.log(config);
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(config);
+                console.log(data);
+                if(!data.ok)
+                {
+                    console.log("SUCCESS - Failed to extend post: " + data.result);
+                }
+                else
+                {
+                    if(data.result.error)
+                    {
+                        console.log("SUCCESS - extend post - error");
+                    }
+                    else
+                    {
+                        $scope.Job.expire_days = data.result.expiry_days;
+                    }
+                }
+            });
+            $promise.error(function(data, status, headers, config) {
+                console.log("ERROR - Failed to extend post: " + status);
+            });
         };
 
-        $scope.OnModifyCandidate = function(id, mod) {
+        $scope.OnModifyCandidate = function(jobid, id, mod) {
             if(mod == 'yes')
             {
-
             }
             else if(mod == 'no')
             {
 
             }
+            else
+            {
+                return;
+            }
+
+            var config = {
+                method: 'POST',
+                url: '/rogue/mod_candidate.php',
+                data: {
+                    jobid : jobid,
+                    applicationid : id,
+                    state : mod
+                }
+            };
+            console.log(config);
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(config);
+                console.log(data);
+                if(!data.ok)
+                {
+                    console.log("SUCCESS - Failed to modify candidate: " + data.result);
+                    //remove candidate from ui 
+                    for(var i = 0; i < $scope.Candidates.profiles.length; i++)
+                    {
+                        if($scope.Candidates.profiles[i].id === id)
+                        {
+                            $scope.Candidates.profiles.splice(i, 1);
+                        }
+                    }
+                }
+                else
+                {
+                    console.log("SUCCESS - modified candidate");
+                    $scope.Job.expire_days = data.result.expiry_days;
+                }
+            });
+            $promise.error(function(data, status, headers, config) {
+                console.log("ERROR - Failed to modify candidate: " + status);
+            });
         }
 
+        //pagination
         $scope.OnNextPage = function() {
-
+            $scope.Page++;
+            $scope.Load();
         };
-
         $scope.OnPrevPage = function() {
-
+            $scope.Page--;
+            $scope.Load();
         };
+
+        $scope.Initialize = function() {
+            $scope.JobId = parseInt($routeParams.jobid);
+            $scope.CandidateType = $routeParams.type;
+            $scope.Page = parseInt($routeParams.page);
+        }
+
+        $scope.Initialize();
+        $scope.Load();
     }]);
 
-    app.controller('EmployerDashboardCtrl', ['$scope', function($scope){
+    app.controller('EmployerDashboardCtrl', ['$scope', '$http', '$location', '$anchorScroll', '$routeParams', 'StaticAPI', 
+        function($scope, $http, $location, $anchorScroll, $routeParams, StaticAPI){
+        $scope.StaticAPI = StaticAPI;
+        $scope.Page = 1;
 
-        $scope.PostedJobs = {
-            start : 1,
-            end : 5,
-            total : 10,
-            jobs : [
-            {
-                id : 1,
-                title : 'job title',
-                employer : 'employer',
-                posted_days : 0,
-                expire_days : 1,
-                candidates : {
-                    'new' : 100,
-                    yes : 10,
-                    no : 5,
-                    matches : 50
-                },
-                job_hours : 10
-            }]
+        $scope.OnPostJob = function() {
+            $location.path('/jobpost');
         };
 
+        $scope.Load = function()
+        {
+            var config = {
+                method: 'POST',
+                url: '/rogue/get_jobposts.php',
+                data: {
+                    page : $scope.Page
+                }
+            };
+            console.log(config);
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(config);
+                console.log(data);
+                if(!data.ok)
+                {
+                    console.log("SUCCESS - Failed to load: " + data.result);
+                }
+                else
+                {
+                    console.log("SUCCESS - Loaded");
+                    $scope.PostedJobs = data.result;
+
+                    //scroll to top of page
+                    $location.hash('top');
+                    $anchorScroll();
+                }
+            });
+            $promise.error(function(data, status, headers, config) {
+                console.log("ERROR - Failed to load: " + status);
+            });
+        };   
+
+        $scope.PostedJobs = {};
+
         $scope.OnEditPost = function(id) {
+            $location.path('/employer/job/' + id + '/edit');
         };
 
         $scope.OnRemovePost = function(id) {
-
+            var config = {
+                method: 'POST',
+                url: '/rogue/remove_post.php',
+                data: {
+                    jobid : id
+                }
+            };
+            console.log(config);
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(config);
+                console.log(data);
+                if(!data.ok)
+                {
+                    console.log("SUCCESS - Failed to remove post: " + data.result);
+                }
+                else
+                {
+                    console.log("SUCCESS - removed post");
+                    for(var i = 0; i < $scope.PostedJobs.jobs.length; i++)
+                    {
+                        if($scope.PostedJobs.jobs[i].id == id)
+                        {
+                            $scope.PostedJobs.jobs[i].expire_days = 0;
+                            $scope.PostedJobs.jobs[i].expired = true;
+                            break;
+                        }
+                    }
+                }
+            });
+            $promise.error(function(data, status, headers, config) {
+                console.log("ERROR - Failed to removed post: " + status);
+            });
         };
 
         $scope.OnExtendPost = function(id) {
-
+            var config = {
+                method: 'POST',
+                url: '/rogue/extend_post.php',
+                data: {
+                    jobid : id
+                }
+            };
+            console.log(config);
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(config);
+                console.log(data);
+                if(!data.ok)
+                {
+                    console.log("SUCCESS - Failed to extend post: " + data.result);
+                }
+                else
+                {
+                    if(data.result.error)
+                    {
+                        console.log("SUCCESS - extend post - error");
+                    }
+                    else
+                    {
+                        for(var i = 0; i < $scope.PostedJobs.jobs.length; i++)
+                        {
+                            if($scope.PostedJobs.jobs[i].id == id)
+                            {
+                                $scope.PostedJobs.jobs[i].expire_days = data.result.expiry_days;
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+            $promise.error(function(data, status, headers, config) {
+                console.log("ERROR - Failed to extend post: " + status);
+            });
         };
-
 
         $scope.OnViewCandidates = function(id, type){
             if(type === 'new')
             {
-
+                $location.path('/employer/job/' + id + '/candidates/New/1');
             }
             else if(type === 'yes')
             {
-
+                $location.path('/employer/job/' + id + '/candidates/Yes/1');
             }
             else if(type === 'no')
             {
-
+                $location.path('/employer/job/' + id + '/candidates/No/1');
             }
             else if(type === 'matches')
             {
-
+                $location.path('/employer/job/' + id + '/matches');
             }
         };
+
+        $scope.Initialize = function()
+        {
+            $scope.Page = parseInt($routeParams.page);
+        }
+
+        $scope.DoesJobPostExpireInMoreThanSeven = function(expire_days) {
+            return expire_days >= 7;
+        }
+
+        //pagination
+        $scope.OnNextPage = function() {
+            $scope.Page++;
+            $scope.Load();
+        };
+        $scope.OnPrevPage = function() {
+            $scope.Page--;
+            $scope.Load();
+        };
+
+        $scope.Initialize();
+        $scope.Load();
     }]);
 
     app.controller('JobSearchHomeCtrl', ['SearchAPI', 'StaticAPI', '$scope', '$location', function(SearchAPI, StaticAPI, $scope, $location){
@@ -247,9 +501,9 @@
         }
     }]);
 
-    app.controller('JobPostCreateCtrl', ['StaticAPI', 'EmployerAPI', '$scope', '$http', function(StaticAPI, EmployerAPI, $scope, $http) {
+    app.controller('JobPostCreateCtrl', ['StaticAPI', 'EmployerAPI', '$scope', '$http', '$location', 
+        function(StaticAPI, EmployerAPI, $scope, $http, $location) {
         var that = $scope;
-
         $scope.StaticAPI = StaticAPI;
 
         $scope.LoadingLocationMessage = null;
@@ -306,7 +560,7 @@
                     }
                     else
                     {
-                        
+                        $location.path('/employer/dashboard/1');
                     }
                 }
                 $scope.FormSubmitting = false;
@@ -318,7 +572,6 @@
                 $scope.ShowFormErrorMessage('We could not process your job post. Please try again later.');
             });
         };
-
         $scope.GetLocation = function() {
             $scope.GettingLocation = true;
             if (navigator.geolocation) {
@@ -334,14 +587,12 @@
                 $scope.LoadingLocationMessage = 'Please enter your postal code - your location is not available.';
             }
         }
-
         $scope.OnGotLocationError = function(error) {
             $scope.$apply(function() {
                 that.GettingLocation = false;
                 that.LoadingLocationMessage = 'Please enter your postal code - your location is not available.';
             });
         };
-
         $scope.OnGotLocationSuccess = function(position) {
             $scope.$apply(function() {
                 that.LoadingLocationMessage = null;
@@ -664,7 +915,7 @@
             }
             else
             {
-                $location.path('/employer/dashboard');
+                $location.path('/employer/dashboard/1');
             }
         };
 
@@ -944,7 +1195,7 @@
             });            
         };
         $scope.Redirect = function() {
-            $location.path('/jobseeker/dashboard');
+            $location.path('/jobseeker/dashboard/1');
         };
 
         $scope.LoadingLocationMessage = null;

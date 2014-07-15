@@ -1,4 +1,4 @@
-<div class="panel panel-success">
+<div class="panel panel-success" id="top">
     <div class="panel-heading">
         <h3 class="panel-title">
             Your Posted Jobs<span class="pull-right"><small style="color: #bdc3c7;">{{PostedJobs.start}} to {{PostedJobs.end}} of {{PostedJobs.total}}</small></span>
@@ -7,8 +7,8 @@
     <ul  class="list-group">
         <li  class="list-group-item">
             <div class="text-center">
-                <p ng-hide="PostedJobs.jobs">You don't have any posted jobs yet.<br></p>
-                <button class="btn btn-danger">Post a Job</button>
+                <p ng-hide="PostedJobs.total">You don't have any posted jobs yet.<br></p>
+                <button class="btn btn-danger" ng-click="OnPostJob()">Post a Job</button>
                 <br>
             </div>
         </li>
@@ -16,14 +16,28 @@
             <div>
                 <h4>{{Job.title}}<span class="label label-success pull-right" ng-hide="Job.expired">Active</span><span class="label label-danger pull-right" ng-show="Job.expired">Expired</span></h4>
                 <h5>{{Job.employer}}</h5>
-                <p>Posted {{Job.posted_days}} days ago | Expires in {{Job.expire_days}} days</p>
+                <p>
+                    <span ng-show="Job.posted_days==0">Posted today</span>
+                    <span ng-hide="Job.posted_days==0">Posted {{Job.posted_days}} day(s) ago</span>
+                    <span ng-hide="Job.expired">
+                        |
+                        <span ng-show="Job.expire_days==0"> Expires today</span
+                        <span ng-hide="Job.expire_days==0"> Expires in {{Job.expire_days}} day(s)</span>
+                    </span>
+                    <span ng-show="Job.expired">
+                        |
+                        <span ng-show="Job.expire_days==0"> Expired today</span>
+                        <span ng-hide="Job.expire_days==0"> Expired {{Job.expire_days}} day(s) ago</span>
+                    </span>
                 <div>
-                    <label><a ng-click="OnEditPost(Job.id)"><span class="glyphicon glyphicon-pencil"></span>&nbsp;<u>Edit Post</u></a></label>
+                    <div ng-hide="Job.expired">
+                        <label><a ng-click="OnEditPost(Job.id)"><span class="glyphicon glyphicon-pencil"></span>&nbsp;<u>Edit Post</u></a></label>
+                        <br>
+                        <label><a ng-click="OnRemovePost(Job.id)"><span class="glyphicon glyphicon-remove"></span>&nbsp;<u>Remove Post</u></a></label>
+                        <br>
+                        <label><a ng-hide="DoesJobPostExpireInMoreThanSeven(Job.expire_days)" ng-click="OnExtendPost(Job.id)"><span class="glyphicon glyphicon-time"></span>&nbsp;<u>Extend Post by 7 Days</u></a></label>
                     <br>
-                    <label><a ng-click="OnRemovePost(Job.id)"><span class="glyphicon glyphicon-remove"></span>&nbsp;<u>Remove Post</u></a></label>
-                    <br>
-                    <label><a ng-click="OnExtendPost(Job.id)"><span class="glyphicon glyphicon-time"></span>&nbsp;<u>Extend Post by 7 Days</u></a></label>
-                    <br>
+                    </div>
                     <label><span class="glyphicon glyphicon-user"></span>&nbsp;View Candidates</label>
                     <div>
                         <a ng-click="OnViewCandidates(Job.id, 'new')"><span class="badge alert-warning">&nbsp;&nbsp;&nbsp;&nbsp;New&nbsp;&nbsp;&nbsp;&nbsp;<br><br>{{Job.candidates.new}}</span></a>
@@ -34,6 +48,12 @@
                 </div>
                 <br>
             </div>
+        </li>
+        <li class="list-group-item" ng-show="PostedJobs.start > 1 || PostedJobs.end < PostedJobs.total">
+            <br>
+            <a ng-click="OnPrevPage()" ng-show="PostedJobs.start > 1">&nbsp;&nbsp;&nbsp;&larr; Prev</a>
+            <a ng-click="OnNextPage()" ng-show="PostedJobs.end < PostedJobs.total" class="pull-right">Next &rarr;&nbsp;&nbsp;&nbsp;</a>
+            <br><br>
         </li>
     </ul>
 </div>

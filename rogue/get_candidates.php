@@ -16,15 +16,15 @@ $AvailabilityDays = array('M', 'T', 'W', 'Th', 'F', 'Sat', 'Sun');
 $request = json_decode(file_get_contents('php://input'), true);
 if(!isset($request['jobid']) || intval($request['jobid']) <= 0)
 {
-    finish(false, 'Bad request.');
+    finish(false, 'Bad request - missing jobid.');
 }
 if(!isset($request['candidate_type']) || !in_array(strval($request['candidate_type']),$valid_candidate_types))
 {
-    finish(false, 'Bad request.');
+    finish(false, 'Bad request - missing candidate type.');
 }
 if(!isset($request['page']) || intval($request['page']) <= 0)
 {
-    finish(false, 'Bad request.');
+    finish(false, 'Bad request - missing page.');
 }
 
 
@@ -114,7 +114,7 @@ if(count($candidates) > 0)
     $candidates = $result['result'];
 }
 
-$result = array('job' => $job, 'candidates' => $candidates);
+$result = array('job' => $job, 'candidates' => array('profiles' => $candidates, 'type' => $candidate_type, 'start' => 0, 'end' => 0, 'total' => 0));
 finish(true, $result);
 ?>
 

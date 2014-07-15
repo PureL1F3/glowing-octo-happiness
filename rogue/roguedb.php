@@ -126,7 +126,7 @@ class StreamHireDB
             else
             {
                 $value['jobseeker'] = array( 'resume' => $object->employee_resume, 'location' => $object->employee_location, 
-                                            'lat' => $object->employee_lat, 'lon' => $object->employee_lon, 'distance' => $object->employee_distance);
+                                            'lat' => floatval($object->employee_lat), 'lon' => floatval($object->employee_lon), 'distance' => intval($object->employee_distance));
             }
         }
         return $this->result(true, $value);
@@ -165,7 +165,7 @@ class StreamHireDB
             else
             {
                 $value['jobseeker'] = array( 'resume' => $object->employee_resume, 'location' => $object->employee_location, 
-                                            'lat' => $object->employee_lat, 'lon' => $object->employee_lon, 'distance' => $object->employee_distance);
+                                            'lat' => floatval($object->employee_lat), 'lon' => floatval($object->employee_lon), 'distance' => intval($object->employee_distance));
             }
         }
         return $this->result(true, $value);
@@ -194,7 +194,7 @@ class StreamHireDB
         if($object)
         {
             syslog(LOG_INFO, 'Registered employer #:'.$object->id); 
-            $value = array('id' => $object->id);
+            $value = array('id' => intval($object->id));
         }
         return $this->result(true, $value);
     }
@@ -310,7 +310,7 @@ class StreamHireDB
         if($object)
         {
             syslog(LOG_INFO, 'Created Job post id #:'.$object->id); 
-            $value = array('id' => $object->id);
+            $value = array('id' => intval($object->id));
         }
         return $this->result(true, $value);
     }
@@ -382,7 +382,7 @@ class StreamHireDB
         if($object)
         {
             syslog(LOG_INFO, 'Created job seeker id #:'.$object->id); 
-            $value = array('id' => $object->id);
+            $value = array('id' => intval($object->id));
         }
         return $this->result(true, $value);
     }
@@ -593,7 +593,7 @@ class StreamHireDB
 
         $detination_clause = "j.lon between $lon1 and $lon2 and j.lat between $lat1 and $lat2 ";
 
-        $sql = "select j.id, j.title, j.description, e.name, j.created, j.total_hours, ";
+        $sql = "select SQL_CALC_FOUND_ROWS j.id, j.title, j.description, e.name, j.created, j.total_hours, ";
         if(strlen($availability_clause))
         {
             $sql .= " ja.match_hours, ";
@@ -666,7 +666,7 @@ class StreamHireDB
         }
         if($row = $result->fetch_array())
         {
-            $rows = $row['rows'];
+            $rows = intval($row['rows']);
         }
 
         return $this->result(true, $rows);
@@ -709,7 +709,7 @@ class StreamHireDB
         if($object)
         {
             syslog(LOG_INFO, 'Found temp applicant id #:'.$object->id); 
-            $applicantid = array('id' => $object->id);
+            $applicantid = array('id' => intval($object->id));
         }
 
         return $this->result(true, $applicantid);
@@ -730,7 +730,7 @@ class StreamHireDB
         if($object)
         {
             syslog(LOG_INFO, 'Created temp applicant id #:'.$object->id); 
-            $applicantid = array('id' => $object->id);
+            $applicantid = array('id' => intval($object->id));
         }
 
         return $this->result(true, $applicantid);
@@ -754,7 +754,7 @@ class StreamHireDB
         $this->mysql_clean_buffer();
         if($object)
         {
-            $application = array('id' => $object->id);
+            $application = array('id' => intval($object->id));
         }
 
         return $this->result(true, $application);
@@ -798,11 +798,11 @@ class StreamHireDB
         $jobs = array();
 
         $offset = ($page - 1) * $results;
-        $sql = "select j.id, j.title, e.name employer, DATEDIFF(NOW(), j.created) posted_days, DATEDIFF(j.expires, NOW()) expire_days, " .
+        $sql = "select SQL_CALC_FOUND_ROWS j.id, j.title, e.name employer, DATEDIFF(NOW(), j.created) posted_days, abs(DATEDIFF(j.expires, NOW())) expire_days, " .
         "coalesce(a.ct, 0) new_candidates, " . 
         "coalesce(b.ct, 0) yes_candidates, " .
         "coalesce(c.ct, 0) no_candidates, " .
-        "0 match_candidates, total_hours " .
+        "0 match_candidates, total_hours, now() > j.expires expired " .
         "from jobpost j " .
         "join employer e on j.employerid=e.userid " .
         "left join (select jobid, count(applicationid) ct from applications where isyes is null group by jobid) a on a.jobid=j.id " .
@@ -818,15 +818,16 @@ class StreamHireDB
         }
         while($object = $result->fetch_object())
         {
-            $job = array('id' => $object->id, 'title' => $object->title, 
-                'employer' => $object->employer, 'posted_days' => $object->posted_days,
-                'expire_days' => $object->expire_days, 
+            $job = array('id' => intval($object->id), 'title' => $object->title, 
+                'employer' => $object->employer, 'posted_days' => intval($object->posted_days),
+                'expire_days' => intval($object->expire_days), 
+                'expired' => $object->expired == 1,
                 'candidates' => array(
-                    'new' => $object->new_candidates,
-                    'yes' => $object->yes_candidates,
-                    'no' => $object->no_candidates,
-                    'matches' => $object->match_candidates),
-                'job_hours' => $object->total_hours
+                    'new' => intval($object->new_candidates),
+                    'yes' => intval($object->yes_candidates),
+                    'no' => intval($object->no_candidates),
+                    'matches' => intval($object->match_candidates)),
+                'job_hours' => intval($object->total_hours)
                 );
             array_push($jobs, $job);
         }
@@ -839,15 +840,19 @@ class StreamHireDB
         syslog(LOG_INFO, "Calling StreamHireDB:get_employer_jobpost");
         $job = null;
 
-        $sql = "select j.id, j.title, e.name employer, DATEDIFF(NOW(), j.created) posted_days, DATEDIFF(j.expires, NOW()) expire_days, " .
-        "(select count(applicationid) from applications where jobid = 16 and isyes is null) new_candidates, " . 
-        "(select count(applicationid) from applications where jobid = 16 and isyes = 1) yes_candidates, " .
-        "(select count(applicationid) from applications where jobid = 16 and isyes = 0) no_candidates, " .
-        "0 match_candidates, total_hours " .
+        $sql = "select j.id, j.title, e.name employer, DATEDIFF(NOW(), j.created) posted_days, abs(DATEDIFF(j.expires, NOW())) expire_days, " .
+        "coalesce(a.ct, 0) new_candidates, " . 
+        "coalesce(b.ct, 0) yes_candidates, " .
+        "coalesce(c.ct, 0) no_candidates, " .
+        "0 match_candidates, total_hours, now() > j.expires expired " .
         "from jobpost j " .
         "join employer e on j.employerid=e.userid " .
-        "join applications a on a.jobid = j.id " .
-        "where j.id=$jobid and j.employerid=$userid;";
+        "left join (select jobid, count(applicationid) ct from applications where isyes is null group by jobid) a on a.jobid=j.id " .
+        "left join (select jobid, count(applicationid) ct from applications where isyes=1 group by jobid) b on b.jobid=j.id " .
+        "left join (select jobid, count(applicationid) ct from applications where isyes=0 group by jobid) c on c.jobid=j.id " .
+        "where j.id=$jobid and j.employerid=$userid " .
+        "group by j.id";
+        syslog(LOG_INFO, $sql);
         $result = $this->_con->query($sql);
         if(!$result)
         {
@@ -857,15 +862,16 @@ class StreamHireDB
         if($object)
         {
             
-            $job = array('id' => $object->id, 'title' => $object->title, 
-                'employer' => $object->employer, 'posted_days' => $object->posted_days,
-                'expire_days' => $object->expire_days, 
+            $job = array('id' => intval($object->id), 'title' => $object->title, 
+                'employer' => $object->employer, 'posted_days' => intval($object->posted_days),
+                'expire_days' => intval($object->expire_days), 
+                'expired' => $object->expired == 1,
                 'candidates' => array(
-                    'new' => $object->new_candidates,
-                    'yes' => $object->yes_candidates,
-                    'no' => $object->no_candidates,
-                    'matches' => $object->match_candidates),
-                'job_hours' => $object->total_hours
+                    'new' => intval($object->new_candidates),
+                    'yes' => intval($object->yes_candidates),
+                    'no' => intval($object->no_candidates),
+                    'matches' => intval($object->match_candidates)),
+                'job_hours' => intval($object->total_hours)
                 );
         }
         return $this->result(true, $job);
@@ -956,6 +962,49 @@ class StreamHireDB
         }
         return $this->result(true, $job);
 
+    }
+
+    function extend_jobpost($jobid, $job_extension_days)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:extend_jobpost"); 
+        $sql = "CALL extend_jobpost($jobid, $job_extension_days);";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $object = $result->fetch_object();
+        $this->mysql_clean_buffer();
+        $expires = NULL;
+        if($object)
+        {
+            $expires = intval($object->expires);
+        }
+        return $this->result(true, $expires);
+    }
+
+    function expire_jobpost($jobid)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:expire_jobpost"); 
+        $sql = "update jobpost set expires = now() where id=$jobid;";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        return $this->result(true, $expires);
+    }
+
+    function modify_jobcandidate($jobid, $applicationid, $mod)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:expire_jobpost"); 
+        $sql = "update applications set isyes=$mod where applicationid=$applicationid and jobid=$jobid;";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        return $this->result(true, $expires);
     }
 
 }

@@ -1,35 +1,31 @@
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Job Post</title>
-    <link href="/rogue/js/libs/jquery-ui-1.11.0/jquery-ui.css" rel="stylesheet" />
-    <link href="/rogue/js/libs/bootstrap-3.2.0-dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="/rogue/css/style.css" rel="stylesheet" />
-    <link href="/rogue/pink.flag/jplayer.pink.flag.css" rel="stylesheet" type="text/css" />
-    <link href="/rogue/style.css" rel="stylesheet" type="text/css" />
-    <style>
-    </style>
-</head>
-<div class="panel" ng-class="{ 'panel-success' :IsCandidates('Yes'), 'panel-warning' : IsCandidates('New'), 'panel-danger' : IsCandidates('No') }" ng-app="rogue">
+<div class="panel" ng-class="{ 'panel-success' :IsCandidates('Yes'), 'panel-warning' : IsCandidates('New'), 'panel-danger' : IsCandidates('No') }" id="top">
     <div class="panel-body">
-        <a ng-click="OnBackToPostedJobs()">← <u>Back To My Posted Jobs</u></a>
+        <a ng-click="OnBackToPostedJobs()">← <u>Back</u></a>
         <h4>{{Job.title}}<span class="label label-success pull-right" ng-hide="Job.expired">Active</span><span class="label label-danger pull-right" ng-show="Job.expired">Expired</span></h4>
         <h5>{{Job.employer}}</h5>
         <p>
             <span ng-show="Job.posted_days==0">Posted today</span>
             <span ng-hide="Job.posted_days==0">Posted {{Job.posted_days}} day(s) ago</span>
-            |
-            <span ng-show="Job.expire_days==0"> Expires today</span
-            <span ng-hide="Job.expire_days==0"> Expires in {{Job.expire_days}} day(s)</span>
+            <span ng-hide="Job.expired">
+                |
+                <span ng-show="Job.expire_days==0"> Expires today</span
+                <span ng-hide="Job.expire_days==0"> Expires in {{Job.expire_days}} day(s)</span>
+            </span>
+            <span ng-show="Job.expired">
+                |
+                <span ng-show="Job.expire_days==0"> Expired today</span>
+                <span ng-hide="Job.expire_days==0"> Expired {{Job.expire_days}} day(s) ago</span>
+            </span>
         </p>
         <div>
-            <label><a ng-click="OnEditPost(Job.id)"><span class="glyphicon glyphicon-pencil"></span>&nbsp;<u>Edit Post</u></a></label>
+            <div ng-hide="Job.expired">
+                <label><a ng-click="OnEditPost(Job.id)"><span class="glyphicon glyphicon-pencil"></span>&nbsp;<u>Edit Post</u></a></label>
+                <br>
+                <label><a ng-click="OnRemovePost(Job.id)"><span class="glyphicon glyphicon-remove"></span>&nbsp;<u>Expire Post</u></a></label>
+                <br>
+                <label><a ng-hide="DoesJobPostExpireInMoreThanSeven(Job.expire_days)" ng-click="OnExtendPost(Job.id)"><span class="glyphicon glyphicon-time"></span>&nbsp;<u>Extend Post by 7 Days</u></a></label>
             <br>
-            <label><a ng-click="OnRemovePost(Job.id)"><span class="glyphicon glyphicon-remove"></span>&nbsp;<u>Remove Post</u></a></label>
-            <br>
-            <label><a ng-click="OnExtendPost(Job.id)"><span class="glyphicon glyphicon-time"></span>&nbsp;<u>Extend Post by 7 Days</u></a></label>
-            <br>
+            </div>
             <label><span class="glyphicon glyphicon-user"></span>&nbsp;View Candidates</label>
             <div>
                 <a ng-click="OnViewCandidates(Job.id, 'new')"><span class="badge alert-warning">&nbsp;&nbsp;&nbsp;&nbsp;New&nbsp;&nbsp;&nbsp;&nbsp;<br><br>{{Job.candidates.new}}</span></a>
@@ -97,7 +93,7 @@
             <button type="button" class="btn btn-danger btn-sm" ng-hide="Candidates.type=='No'">No</button>
             </p>
         </li>
-        <li class="list-group-item">
+        <li class="list-group-item" ng-show="Candidates.start > 1 || Candidates.end < Candidates.total">
             <br>
             <a ng-click="OnPrevPage()" ng-show="Candidates.start > 1">&nbsp;&nbsp;&nbsp;&larr; Prev</a>
             <a ng-click="OnNextPage()" ng-show="Candidates.end < Candidates.total" class="pull-right">Next &rarr;&nbsp;&nbsp;&nbsp;</a>
