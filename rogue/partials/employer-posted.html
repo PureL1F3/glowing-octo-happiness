@@ -1,59 +1,123 @@
 <div class="panel panel-success" id="top">
     <div class="panel-heading">
         <h3 class="panel-title">
-            Your Posted Jobs<span class="pull-right"><small style="color: #bdc3c7;">{{PostedJobs.start}} to {{PostedJobs.end}} of {{PostedJobs.total}}</small></span>
+            Your Posted Jobs
+            <span class="pull-right">
+                <small class="sh-lighttext">{{PostedJobs.start}} to {{PostedJobs.end}} of {{PostedJobs.total}}</small>
+            </span>
         </h3>
     </div>
     <ul  class="list-group">
         <li  class="list-group-item">
             <div class="text-center">
-                <p ng-hide="PostedJobs.total">You don't have any posted jobs yet.<br></p>
+                <p ng-hide="PostedJobs.total">You haven't posted any jobs yet.</p>
+                <br>
                 <button class="btn btn-danger" ng-click="OnPostJob()">Post a Job</button>
                 <br>
             </div>
         </li>
         <li  class="list-group-item" ng-repeat="Job in PostedJobs.jobs">
             <div>
-                <h4>{{Job.title}}<span class="label label-success pull-right" ng-hide="Job.expired">Active</span><span class="label label-danger pull-right" ng-show="Job.expired">Expired</span></h4>
+                <h4 class="sh-jobtitle">
+                    {{Job.title}}
+                    <span class="label label-success pull-right" ng-hide="Job.expired">Active</span>
+                    <span class="label label-danger pull-right" ng-show="Job.expired">Expired</span>
+                </h4>
                 <h5>{{Job.employer}}</h5>
-                <p>
-                    <span ng-show="Job.posted_days==0">Posted today</span>
-                    <span ng-hide="Job.posted_days==0">Posted {{Job.posted_days}} day(s) ago</span>
+                <p class="sh-lighttext">
+                    Posted 
+                    <span ng-show="Job.posted_days==0">today</span>
+                    <span ng-hide="Job.posted_days==0">{{Job.posted_days}} day(s) ago</span>
                     <span ng-hide="Job.expired">
-                        |
-                        <span ng-show="Job.expire_days==0"> Expires today</span
-                        <span ng-hide="Job.expire_days==0"> Expires in {{Job.expire_days}} day(s)</span>
+                        | Expires 
+                        <span ng-show="Job.expire_days==0">today</span
+                        <span ng-hide="Job.expire_days==0">in {{Job.expire_days}} day(s)</span>
                     </span>
                     <span ng-show="Job.expired">
-                        |
-                        <span ng-show="Job.expire_days==0"> Expired today</span>
-                        <span ng-hide="Job.expire_days==0"> Expired {{Job.expire_days}} day(s) ago</span>
+                        | Expired 
+                        <span ng-show="Job.expire_days==0">today</span>
+                        <span ng-hide="Job.expire_days==0">{{Job.expire_days}} day(s) ago</span>
                     </span>
+                </p>
                 <div>
                     <div ng-hide="Job.expired">
-                        <label><a ng-click="OnEditPost(Job.id)"><span class="glyphicon glyphicon-pencil"></span>&nbsp;<u>Edit Post</u></a></label>
+                        <label>
+                            <span class="glyphicon glyphicon-remove"></span>
+                            <a ng-hide="PostedJobRemoving[Job.id]" ng-click="OnRemovePost(Job.id)"><u>Expire</u></a>
+                            <span ng-show="PostedJobRemoving[Job.id]" class="sh-lighttext">Expiring ...</span>
+                        </label>
                         <br>
-                        <label><a ng-click="OnRemovePost(Job.id)"><span class="glyphicon glyphicon-remove"></span>&nbsp;<u>Remove Post</u></a></label>
+                        <label>
+                            <span class="glyphicon glyphicon-time"></span>
+                            <a ng-hide="PostedJobExtending[Job.id] || DoesJobPostExpireInMoreThanSeven(Job.expire_days)" ng-click="OnExtendPost(Job.id)"><u>Extend Post by 7 Days</u></a>
+                            <span ng-show="PostedJobExtending[Job.id]" class="sh-lighttext">Extending ...</span>
+                        </label>
                         <br>
-                        <label><a ng-hide="DoesJobPostExpireInMoreThanSeven(Job.expire_days)" ng-click="OnExtendPost(Job.id)"><span class="glyphicon glyphicon-time"></span>&nbsp;<u>Extend Post by 7 Days</u></a></label>
-                    <br>
                     </div>
-                    <label><span class="glyphicon glyphicon-user"></span>&nbsp;View Candidates</label>
+                    <div ng-show="PostedJobModifyErrors[Job.id]" class="alert alert-danger text-center" role="alert">
+                        {{PostedJobModifyErrors[Job.id]}}
+                    </div>
+                    <label>
+                        <span class="glyphicon glyphicon-user"></span>
+                        View Candidates
+                    </label>
                     <div>
-                        <a ng-click="OnViewCandidates(Job.id, 'new')"><span class="badge alert-warning">&nbsp;&nbsp;&nbsp;&nbsp;New&nbsp;&nbsp;&nbsp;&nbsp;<br><br>{{Job.candidates.new}}</span></a>
-                        <a ng-click="OnViewCandidates(Job.id, 'yes')"><span class="badge alert-success">&nbsp;&nbsp;&nbsp;&nbsp;Yes&nbsp;&nbsp;&nbsp;&nbsp;<br><br>{{Job.candidates.yes}}</span></a>
-                        <a ng-click="OnViewCandidates(Job.id, 'no')"><span class="badge alert-danger">&nbsp;&nbsp;&nbsp;&nbsp;No&nbsp;&nbsp;&nbsp;&nbsp;<br><br>{{Job.candidates.no}}</span></a>
-                        <a ng-click="OnViewCandidates(Job.id, 'matches')"><span class="badge alert-info">StreamHire Matches<br><br><span class="glyphicon glyphicon-search"></span>&nbsp;&nbsp;&nbsp;{{Job.candidates.matches}}&nbsp;&nbsp;&nbsp;</span></a>
+                        <a ng-click="OnViewCandidates(Job.id, 'New')">
+                            <span class="badge alert-warning">
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                New
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                <br>
+                                <br>
+                                {{Job.candidates.new}}
+                            </span>
+                        </a>
+                        <a ng-click="OnViewCandidates(Job.id, 'Yes')">
+                            <span class="badge alert-success">
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                Yes
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                <br>
+                                <br>
+                                {{Job.candidates.yes}}
+                            </span>
+                        </a>
+                        <a ng-click="OnViewCandidates(Job.id, 'No')">
+                            <span class="badge alert-danger">
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                No
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                <br>
+                                <br>
+                                {{Job.candidates.no}}
+                            </span>
+                        </a>
+                        <a ng-click="OnViewCandidates(Job.id, 'Matches')">
+                            <span class="badge alert-info">
+                                Matches
+                                <br>
+                                <br>
+                                <span class="glyphicon glyphicon-search"></span>
+                                &nbsp;&nbsp;&nbsp;
+                                {{Job.candidates.matches}}
+                                &nbsp;&nbsp;&nbsp;
+                            </span>
+                        </a>
                     </div>
                 </div>
                 <br>
             </div>
         </li>
-        <li class="list-group-item" ng-show="PostedJobs.start > 1 || PostedJobs.end < PostedJobs.total">
+        <li class="list-group-item" ng-show="!$scope.Loading && (PostedJobs.start > 1 || PostedJobs.end < PostedJobs.total)">
             <br>
-            <a ng-click="OnPrevPage()" ng-show="PostedJobs.start > 1">&nbsp;&nbsp;&nbsp;&larr; Prev</a>
-            <a ng-click="OnNextPage()" ng-show="PostedJobs.end < PostedJobs.total" class="pull-right">Next &rarr;&nbsp;&nbsp;&nbsp;</a>
-            <br><br>
+            <a ng-click="OnPrevPage()" ng-show="PostedJobs.start > 1">
+                &nbsp;&nbsp;&nbsp;&larr; Prev
+            </a>
+            <a ng-click="OnNextPage()" ng-show="PostedJobs.end < PostedJobs.total" class="pull-right">
+                Next &rarr;&nbsp;&nbsp;&nbsp;
+            </a>
+            <br>
+            <br>
         </li>
     </ul>
 </div>

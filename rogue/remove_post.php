@@ -4,18 +4,14 @@ include_once('config.php');
 include_once('utility.php');
 include_once('roguedb.php');
 
-$job_extension_days = 7;
-
 $request = json_decode(file_get_contents('php://input'), true);
-if(!isset($request['jobid']) || intval($request['jobid']) <= 0)
-{
-    finish(false, 'Bad request.');
+if(!isset($request['jobid']) || intval($request['jobid']) <= 0) {
+    finish(false, BAD_REQUEST);
 }
 $jobid = intval($request['jobid']);
 
-if(!isset($_COOKIE['token']))
-{
-    return finish(false, "You need to be logged in to view this page.");
+if(!isset($_COOKIE['token'])) {
+    finish(false, NOT_AUTH);
 }
 $token = $_COOKIE['token'];
 
@@ -25,44 +21,45 @@ $config['database']['streamhire']['pwd'],
 $config['database']['streamhire']['db']);
 
 $result = $db->connect();
-if(!$result['ok'])
-{
-    finish(false, $config['canned_msg']['technical_difficulty']);
+if(!$result['ok']) {
+    finish(false, TECH_ISSUE);
 }
 
 $result = $db->user_bytoken($token);
-if(!$result['ok'])
-{
-    finish(false, $config['canned_msg']['technical_difficulty']);
+if(!$result['ok']) {
+    finish(false, TECH_ISSUE);
 }
-else if(is_null($result['result']))
-{
-    finish(false, "You need to be logged in to view this page.");
+else if(is_null($result['result'])) {
+    finish(false, NOT_AUTH);
 }
 $userid = $result['result']['id'];
 
 $result = $db->get_employer_jobpost($userid, $jobid);
-if(!$result['ok'])
-{
-    finish(false, $config['canned_msg']['technical_difficulty']);
+if(!$result['ok']) {
+    finish(false, TECH_ISSUE);
 }
-else if(is_null($result['result']))
-{
-    finish(false, "Invalid job id.");
+else if(is_null($result['result'])) {
+    //employer is not owner of this jobpost
+    finish(false, BAD_REQUEST);
 }
 $job = $result['result'];
 
-if($job['expired'])
-{
-    //job is already expired - nothing to do
-    finish(true);
+if($job['expired']) {
+    $expire_data = array(
+        'expire_days' => $job['expire_days'],
+        'expired' => $job['expired']
+    );   
+    finish(true, $expire_data);
 }
 
 $result = $db->expire_jobpost($jobid);
-if(!$result['ok'])
-{
-    finish(false, $config['canned_msg']['technical_difficulty']);
+if(!$result['ok']) {
+    finish(false, TECH_ISSUE);
 }
-finish(true);
 
+$expire_data = array(
+    'expire_days' => 0,
+    'expired' => true
+);
+finish(true, $expire_data);
 ?>

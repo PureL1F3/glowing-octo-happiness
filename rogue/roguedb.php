@@ -111,22 +111,26 @@ class StreamHireDB
         if($object)
         {
             syslog(LOG_INFO, 'Got result:'.$object->user_id); 
-            $value = array( 'id' => $object->user_id, 
+            $value = array( 'id' => intval($object->user_id), 
                             'name' => $object->user_name, 
                             'email' => $object->user_email, 
                             'phone' => $object->user_phone, 
                             'salt' => $object->user_salt, 
                             'hash' => $object->user_hash);
 
-            if($object->user_employer == 1)
+            if(intval($object->user_employer) == 1)
             {
                 $value['employer'] = array( 'name' => $object->employer_name, 'website' => $object->employer_website, 
                                             'description' => $object->employer_description);
             }
             else
             {
-                $value['jobseeker'] = array( 'resume' => $object->employee_resume, 'location' => $object->employee_location, 
-                                            'lat' => floatval($object->employee_lat), 'lon' => floatval($object->employee_lon), 'distance' => intval($object->employee_distance));
+                $value['jobseeker'] = array( 
+                        'resume' => $object->employee_resume, 
+                        'location' => $object->employee_location, 
+                        'lat' => floatval($object->employee_lat), 
+                        'lon' => floatval($object->employee_lon), 
+                        'distance' => intval($object->employee_distance));
             }
         }
         return $this->result(true, $value);
@@ -150,14 +154,14 @@ class StreamHireDB
         if($object)
         {
             syslog(LOG_INFO, 'Got result:'.$object->user_id); 
-            $value = array( 'id' => $object->user_id, 
+            $value = array( 'id' => intval($object->user_id), 
                             'name' => $object->user_name, 
                             'email' => $object->user_email, 
                             'phone' => $object->user_phone, 
                             'salt' => $object->user_salt, 
                             'hash' => $object->user_hash);
 
-            if($object->user_employer == 1)
+            if(intval($object->user_employer) == 1)
             {
                 $value['employer'] = array( 'name' => $object->employer_name, 'website' => $object->employer_website, 
                                             'description' => $object->employer_description);
@@ -995,8 +999,7 @@ class StreamHireDB
         return $this->result(true, $expires);
     }
 
-    function modify_jobcandidate($jobid, $applicationid, $mod)
-    {
+    function modify_jobcandidate($jobid, $applicationid, $mod) {
         syslog(LOG_INFO, "Calling StreamHireDB:expire_jobpost"); 
         $sql = "update applications set isyes=$mod where applicationid=$applicationid and jobid=$jobid;";
         $result = $this->_con->query($sql);
@@ -1007,6 +1010,340 @@ class StreamHireDB
         return $this->result(true, $expires);
     }
 
+    function get_jobseeker_applications($userid, $page, $results) {
+        $applications = array();
+        $offset = ($page - 1) * $results;
+        $sql = "select SQL_CALC_FOUND_ROWS j.id, a.applicationid,  j.title, e.name, now() > j.expires as expired, j.total_hours, " .
+        "DATEDIFF(NOW(), j.created) as posted_days, DATEDIFF(NOW(), a.created) as applied_days " .
+        "from applications a " .
+        "join jobpost j on j.id=a.jobid " .
+        "join employer e on j.employerid=e.userid " .
+        "where applicantid=$userid " .
+        "order by a.created desc " .
+        "limit $offset, $results";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($object = $result->fetch_object())
+        {
+            $application = array(
+                'jobid' => intval($object->id),
+                'applicationid' => intval($object->applicationid),
+                'title' => $object->title,
+                'employer' => $object->name,
+                'expired' => intval($object->expired) == 1,
+                'total_hours' => intval($object->total_hours),
+                'posted_days' => intval($object->posted_days),
+                'applied_days' => intval($object->applied_days)
+            );
+
+            $applications[$application['applicationid']] = $application;
+        }
+        return $this->result(true, $jobs);
+    }
+
+    function get_availability_for_jobapplications($applications, $applications_availability) {
+        $sql = "";
+        foreach ($applications as $j) {
+            $sql .= "$j,";
+        }
+        $sql = rtrim($sql, ',');
+        $sql = "select applicationid, day, hour from application_availability where jobid in (" . $sql . ");";
+        while($object = $result->fetch_object())
+        {
+            $jobid = intval($object->jobid);
+            $day = intval($object->day);
+            $hour = intval($object->hour);
+            $applications_availability[$jobid][$day][$hour] = true;
+        }
+        return $applications_availability;        
+    }
+
+    function get_availability_for_jobs($jobs, $jobs_availability) {
+        $sql = "";
+        foreach ($jobs as $j) {
+            $sql .= "$j,";
+        }
+        $sql = rtrim($sql, ',');
+        $sql = "select jobid, day, hour from jobpost_availability where jobid in (" . $sql . ");";
+        while($object = $result->fetch_object())
+        {
+            $jobid = intval($object->jobid);
+            $day = intval($object->day);
+            $hour = intval($object->hour);
+            $jobs_availability[$jobid][$day][$hour] = true;
+        }
+        return $jobs_availability;
+    }
+
+    function get_jobseeker_savedjobs($userid, $page, $results) {
+        $savedjobs = array();
+        $offset = ($page - 1) * $results;
+        $sql = "select SQL_CALC_FOUND_ROWS j.id, j.title, e.name, now() > j.expires as expired, j.total_hours, " .
+        "DATEDIFF(NOW(), j.created) as posted_days, " .
+        "from applications a " .
+        "join jobpost j on j.id=a.jobid " .
+        "join employer e on j.employerid=e.userid " .
+        "where applicantid=$userid " .
+        "order by a.created desc " .
+        "limit $offset, $results";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($object = $result->fetch_object())
+        {
+            $application = array(
+                'jobid' => intval($object->id),
+                'title' => $object->title,
+                'employer' => $object->name,
+                'expired' => intval($object->expired) == 1,
+                'total_hours' => intval($object->total_hours),
+                'posted_days' => intval($object->posted_days),
+                'applied_days' => intval($object->applied_days)
+            );
+
+            $applications[$application['applicationid']] = $application;
+        }
+        return $this->result(true, $jobs);
+    }
+
+    function get_jobseeker_applied_jobs_count($userid) {
+        $sql = "select count(applicationid) ct from applications where applicantid=$userid";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $count = 0;
+        if($object = $result->fetch_object()) {
+            $count = intval($object->ct);
+        }
+        return $this->result(true, $count);
+    }
+    function get_jobseeker_applied_jobs($userid, $page, $results) {
+        $jobs = array();
+        $offset = ($page - 1) * $results;
+        $sql = "select a.applicationid, j.id, j.title, e.name, j.total_hours, " .
+            "DATEDIFF(NOW(), j.created) posted_days, " .
+            "abs(DATEDIFF(j.expires, NOW())) expire_days, " .
+            "NOW() > j.expires expired " .
+            "from jobpost j " .
+            "join employer e on e.userid=j.employerid " .
+            "join applications a on a.jobid=j.id " .
+            "where a.applicantid=$userid " .
+            "order by a.created desc " .
+            "limit $offset, $results;";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($object = $result->fetch_object())
+        {
+            $job = array(
+                'jobid' => intval($object->id),
+                'applicationid' => intval($object->applicationid),
+                'title' => $object->title,
+                'employer' => $object->name,
+                'expired' => intval($object->expired) == 1,
+                'total_hours' => intval($object->total_hours),
+                'posted_days' => intval($object->posted_days),
+                'applied_days' => intval($object->applied_days)
+            );
+
+            $jobs[$job['applicationid']] = $job;
+        }
+        return $this->result(true, $jobs);
+    }
+    function get_jobseeker_invited_jobs_count($userid) {
+        $sql = "select count(jobpostid) ct from invitations where applicantid=$userid";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $count = 0;
+        if($object = $result->fetch_object()) {
+            $count = intval($object->ct);
+        }
+        return $this->result(true, $count);
+    }
+    function get_jobseeker_invited_jobs($userid, $page, $results) {
+        $jobs = array();
+        $offset = ($page - 1) * $results;
+        $sql = "select j.id, j.title, e.name, j.total_hours, " .
+            "DATEDIFF(NOW(), j.created) posted_days, " . 
+            "abs(DATEDIFF(j.expires, NOW())) expire_days, " .
+            "NOW() > j.expires expired " .
+            "from jobpost j " . 
+            "join employer e on e.userid=j.employerid " .
+            "join invitations i on i.jobpostid=j.id " .
+            "where i.applicantid=$userid " .
+            "order by i.created desc " .
+            "limit $offset, $results;";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($object = $result->fetch_object())
+        {
+            $job = array(
+                'jobid' => intval($object->id),
+                'title' => $object->title,
+                'employer' => $object->name,
+                'expired' => intval($object->expired) == 1,
+                'total_hours' => intval($object->total_hours),
+                'posted_days' => intval($object->posted_days),
+                'applied_days' => intval($object->applied_days)
+            );
+
+            $jobs[$job['jobid']] = $job;
+        }
+        return $this->result(true, $jobs);
+    }
+
+    function get_jobseeker_jobs_stats($userid, $jobs) {
+        $stats = array();
+        $sql = "select j.id job_id, count(k.jobid) match_hours, " .
+            "e.ct availability_hours, d.ct job_hours from jobpost j " . 
+            "join jobpost_availability k on j.id=k.jobid " . 
+            "join jobseeker_availability m on m.day=k.day and m.hour=k.hour " .
+            "join (select jobid, count(jobid) ct from jobpost_availability group by jobid) d on d.jobid=j.id " .
+            "join (select jobseekerid, count(jobseekerid) ct from jobseeker_availability group by jobseekerid) e on e.jobseekerid=m.jobseekerid " . 
+            "where m.jobseekerid=$userid and j.id in (";
+        foreach($jobs as $j)
+        {
+            $sql .= "$j,";
+        }
+        $sql = rtrim($sql, ",");
+        $sql .= ") group by j.id;";
+
+syslog(LOG_INFO, $sql);
+
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($object = $result->fetch_object())
+        {
+            $stat = array(
+                'jobid' => intval($object->job_id),
+                'match_hours' => intval($object->match_hours),
+                'availability_hours' => intval($object->availability_hours),
+                'job_hours' => intval($object->job_hours)
+            );
+
+            $stats[$stat['jobid']] = $stat;
+        }
+        return $this->result(true, $stats);
+    }
+    function get_jobseeker_application_stats($applications) {
+        $stats = array();
+        $sql = "select a.applicationid application_id, count(a.jobid) match_hours, " .
+            "c.ct availability_hours, d.ct job_hours from applications a " .
+            "join application_availability b on b.applicationid=a.applicationid " .
+            "join jobpost_availability j on a.jobid=j.jobid and b.day=j.day and b.hour=j.hour " .
+            "join (select applicationid, count(applicationid) ct from application_availability group by applicationid) c on c.applicationid = a.applicationid " .
+            "join (select jobid, count(jobid) ct from jobpost_availability group by jobid) d on d.jobid=j.jobid " .
+            "where a.applicationid in (";
+            foreach($applications as $j)
+            {
+                $sql .= "$j,";
+            }
+        $sql = rtrim($sql, ",");
+        $sql .= ") group by a.applicationid;";
+
+syslog(LOG_INFO, $sql);
+    
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($object = $result->fetch_object())
+        {
+            $stat = array(
+                'applicationid' => intval($object->application_id),
+                'match_hours' => intval($object->match_hours),
+                'availability_hours' => intval($object->availability_hours),
+                'job_hours' => intval($object->job_hours)
+            );
+
+            $stats[$stat['applicationid']] = $stat;
+        }
+        return $this->result(true, $stats);
+    }
+
+    function get_jobpost_complete($userid, $jobid) {
+        //jobpost has to be active - this is used to get jobpost to edit it
+        $sql = "select j.id, e.name employer, j.title, j.description, j.location, j.lat, j.lon, " .
+            "j.type, j.function, j.external_url from jobpost j " .
+            "join employer e on j.employerid=e.userid " .
+            "where e.userid=$userid and j.id=$jobid and NOW() < j.expires;";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $jobpost = null;
+        if($object = $result->fetch_object())
+        {
+            $jobpost = array(
+                'id' => $object->id,
+                'employer' => $object->employer,
+                'title' => $object->title,
+                'description' => $object->description,
+                'location' => array(
+                    'name' => $object->location,
+                    'lat' => $object->lat,
+                    'lon' => $object->lon,
+                    ),
+                'jobtype' => $object->type,
+                'jobfunction' => $object->function,
+                'externalurl' => $object->external_url,
+                'applicationtype' => (is_null($object->external_url) || strlen($object->external_url) == 0)
+                );
+        }
+        return $this->result(true, $jobpost);
+    }
+
+   function inject($sql) {
+        syslog(LOG_INFO, "Calling inject"); 
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        return $this->result(true);
+    }
+
+    function get_location($code) {
+        syslog(LOG_INFO, "Get location with code $code"); 
+        $sqlpcode = $this->_con->real_escape_string($code);
+        $sql = "select lat, lon from location where postalcode='$sqlpcode';";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $location = null;
+        if($object = $result->fetch_object())
+        {
+            $location = array(
+                'name' => $code, 
+                'lat' => floatval($object->lat), 
+                'lon' => floatval($object->lon)
+            );
+        }
+
+        return $this->result(true, $location);
+    }
 }
 
 ?>

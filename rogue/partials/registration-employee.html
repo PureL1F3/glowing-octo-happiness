@@ -3,15 +3,16 @@
         <h3 class="panel-title">Login</h3>
     </div>
     <div class="panel-body">
-        <form ng-submit="SubmitLogin()" novalidate>
+        <form ng-submit="OnSubmitLogin()" novalidate>
             <div class="form-group" ng-class="{ 'has-error' : LoginError.email }">
-                <label>E-Mail</label><span class="pull-right"><u><a ng-click="OnForgotPassword()">Forgot password for email</a></u></span>
+                <label>E-Mail</label>
+                <span class="pull-right"><u><a ng-click="OnForgotPassword()">Forgot password for email</a></u></span>
                 <input class="form-control" type="text" placeholder="" ng-model="Login.email" />
                 <p ng-show="LoginError.email" class="help-block">{{LoginError.email}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : LoginError.password }">
                 <label>Password</label>
-                <input class="form-control" type="text" placeholder="" ng-model="Login.password" />
+                <input class="form-control" type="password" placeholder="" ng-model="Login.password" />
                 <p ng-show="LoginError.password" class="help-block">{{LoginError.password}}</p>
             </div>
             <div class="alert alert-danger text-center" role="alert" ng-show="LoginErrorMessage">{{LoginErrorMessage}}</div>
@@ -27,39 +28,48 @@
         <h3 class="panel-title">Registration</h3>
     </div>
     <div class="panel-body">
-        <form ng-submit="SubmitRegistration()" novalidate>
+        <form ng-submit="OnSubmitRegistration()" novalidate>
+            <p>Creating a StreamHire profile allows employers to find you for the jobs you're interested in, as well as saving you time when filling out job applications.
+            <br>
+            <br>
+            On StreamHire, when employers post a job they can immediately see anonymous profiles (just resume and availability) of job seekers who match their job based on job interests and search radius. If you receive a job application invitation, that means the employer liked your resume and availability, and would be interested in you applying for their job.
+            <br>
+            <br>
+            The power to apply for any job is always in your hands. StreamHire never discloses your contact information to any employer until you submit that information in a job application. You can apply to any StreamHire job, wether you find it through StreamHire search or you receive a job application invite from an employer.
+            <p>
             <div class="form-group" ng-class="{ 'has-error' : RegistrationError.account.name }">
-                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Name</label>
-                <input class="form-control" type="text" placeholder="" ng-model="Registration.account.name" />
+                <label>Name</label>
+                <input maxlength="100" class="form-control" type="text" placeholder="" ng-model="Registration.account.name" />
                 <p ng-show="RegistrationError.account.name" class="help-block">{{RegistrationError.account.name}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : RegistrationError.resume }">
-                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Resume</label>
+                <label>Resume</label>
                 <p>Your resume will be seen by employers with relevant jobs for your resume. Remove your contact information to keep it private until you decide to apply for specific jobs.</p>
-                <textarea class="form-control" ng-model="Registration.resume" ></textarea>
+                <textarea maxlength="5000" class="form-control" ng-model="Registration.resume" ></textarea>
                 <p ng-show="RegistrationError.resume" class="help-block">{{RegistrationError.resume}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : RegistrationError.account.email }">
-                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;E-Mail</label>
-                <input class="form-control" type="text" placeholder="" ng-model="Registration.account.email" />
+                <label>E-Mail</label>
+                <input maxlength="320" class="form-control" type="text" placeholder="" ng-model="Registration.account.email" />
                 <p ng-show="RegistrationError.account.email" class="help-block">{{RegistrationError.account.email}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : RegistrationError.account.phone }">
                 <label>Phone #</label>
-                <input class="form-control" type="text" placeholder="" ng-model="Registration.account.phone" />
+                <input maxlength="15" class="form-control" type="text" placeholder="" ng-model="Registration.account.phone" />
                 <p ng-show="RegistrationError.account.phone" ng-init="RegistrationError.account.phone" class="help-block"></p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : RegistrationError.account.password }">
-                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Account Password</label>
-                <input class="form-control" type="password" placeholder="" ng-model="Registration.account.password" />
+                <label>Account Password</label>
+                <input maxlength="12" class="form-control" type="password" placeholder="" ng-model="Registration.account.password" />
                 <p ng-show="RegistrationError.account.password" class="help-block">{{RegistrationError.account.password}}</p>
             </div>
             <div>
                 <h4>Job Matching Parameters</h4>
-                <p>To get your resume in front of employers who can invite you to apply for the right jobs, please let us know what availability, geographical area, job functions, and job types you would like to be visible for. Employers can only find your resume if their job matches your settings.</p>
+                <p>To get your resume in front of employers for the right jobs, please let us know what availability, geographical area, job functions, and job types you would like to be visible for. Employers can only find your resume if their job matches your settings.</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : RegistrationError.availability }">
-                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Availability</label>
+                <label>Availability</label>
+                <p ng-show="RegistrationError.availability" class="help-block">{{RegistrationError.availability}}</p>
                 <table class="table table-bordered table-condensed table-striped text-center">
                     <tr>
                         <th></th>
@@ -72,29 +82,28 @@
                         </td>
                     </tr>
                 </table>
-                <p ng-show="RegistrationError.availability" class="help-block">{{RegistrationError.availability}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : RegistrationError.location }">
                 <label>Postal Code</label>
-                <button type="button" class="btn btn-info btn-sm pull-right" ng-click="GetLocation()">Use my location</button>
-                <input type="text" class="form-control" ng-model="Registration.location.name" />
+                <button type="button" class="btn btn-info btn-sm pull-right" ng-click="OnGetLocation()">Use my location</button>
+                <input maxlength="10" type="text" class="form-control" ng-model="Registration.location.name" />
                 <p ng-show="RegistrationError.location" class="help-block">{{RegistrationError.location}}</p>
                 <p ng-show="LoadingLocationMessage" class="help-block">{{LoadingLocationMessage}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : RegistrationError.distance }">
-                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Job Search Radius</label>
+                <label>Job Search Radius</label>
                 <select class="form-control" ng-model="Registration.distance" ng-options="d + ' km' for d in StaticAPI.JobSearchRadius">
                 </select>
                 <p ng-show="RegistrationError.distance" class="help-block">{{RegistrationError.distance}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : RegistrationError.jobfunctions }">
-                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Job Functions</label>
+                <label>Job Functions</label>
                 <select multiple="true" class="form-control" ng-model="Registration.jobfunctions" ng-options="d.id as d.name for d in StaticAPI.JobFunctions">
                 </select>
                 <p ng-show="RegistrationError.jobfunctions" class="help-block">{{RegistrationError.jobfunctions}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : RegistrationError.jobtypes }">
-                <label><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;Job Types</label>
+                <label>Job Types</label>
                 <select multiple="true" class="form-control" ng-model="Registration.jobtypes" ng-options="d.id as d.name for d in StaticAPI.JobTypes">
                 </select>
                 <p ng-show="RegistrationError.jobtypes" class="help-block">{{RegistrationError.jobtypes}}</p>

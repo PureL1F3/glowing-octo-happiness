@@ -1,3 +1,34 @@
+SearchParamsExpanded
+ToggleSearchParamsExpanded()
+
+SearchParams.location.name
+
+StaticAPI.AvailabilityDays
+StaticAPI.AvailabilityCategories
+SearchParams.availability[$index][$parent.$index]
+
+OnSearch()
+
+SearchAPI.NoResults()
+
+SearchAPI.SearchResults.start
+SearchAPI.SearchResults.end
+SearchAPI.SearchResults.total
+SearchAPI.SearchResults.results
+
+result.title
+result.applied
+result.viewed
+result.employer
+result.postdate
+result.hours_match
+result.hours_total
+result.hours_available
+
+OnPrevPage()
+OnNextPage()
+
+
 <div class="panel panel-success">
     <div class="panel-heading">
         <h3 class="panel-title">
@@ -28,7 +59,7 @@
                     </tr>
                 </table>
             </div>
-            <div class="form-group">
+            <div class="form-group" ng-show="false">
                 <label>Keywords</label>
                 <input type="text" class="form-control" ng-model="SearchParams.keywords" />
             </div>
@@ -38,7 +69,6 @@
         </form>
     </div>
 </div>
-
 <div class="panel panel-danger" ng-show="SearchAPI.NoResults()">
     <div class="panel-heading">
         <h3 class="panel-title">
@@ -58,7 +88,7 @@
 <div class="panel panel-success" ng-hide="SearchAPI.NoResults()">
     <div class="panel-heading">
         <h3 class="panel-title">
-        Available Jobs <span class="pull-right"><small style="color: #bdc3c7;">{{SearchAPI.SearchResults.start}} to {{SearchAPI.SearchResults.end}} of {{SearchAPI.SearchResults.total }}</small></span>
+        Available Jobs <span class="pull-right"><small style="color: #bdc3c7;">{{SearchAPI.SearchResults.start}} to {{SearchAPI.SearchResults.end}} of {{SearchAPI.SearchResults.total}}</small></span>
         </h3>
     </div>
     <div class="list-group">
@@ -71,27 +101,28 @@
             <p>
                 <small style="color: #bdc3c7;">Posted {{result.postdate}} days ago</small>
                 <br>
-                <img src="icons/rogue_star.png" style="width: 16px; height: 16px;"><img src="icons/rogue_star.png" style="width: 16px; height: 16px"><img src="icons/rogue_star.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"> Job Hours Match ({{result.hours.match}} / {{result.hours.job}})
+                <!-- show job match stars -->
+                <img src="icons/rogue_star.png" style="width: 16px; height: 16px;" 
+                    ng-repeat="t in GetSolidStarCount(result.hours_match, result.hours_total) track by $index"/><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
+                    ng-repeat="u in GetEmptyStarCount(result.hours_match, result.hours_total) track by $index "/>
+                <small>Job Hours Match - <span ng-hide="result.hours_match && result.hours_total">N/A</span>
+                                         <span ng-show="result.hours_match && result.hours_total">({{result.hours_match}} / {{result.hours_total}})</span>
+                </small>
                 <br>
-                <img src="icons/rogue_star.png" style="width: 16px; height: 16px;"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"> Availability Coverage ({{result.hours.match}} / {{result.hours.coverage}})
-                <br>
-            </p>
-        </a>
-        <a href="#" class="list-group-item">
-            <h4 style="margin-top: 5px; margin-bottom: 1px; color: #03AB52; font-weight: normal;"><u>Beverage Manager</u></h4>
-            <h5 style="margin-top: 5px; margin-bottom: 1px;">Reds Wine Tavern</h5>
-            <p>Toronto, ON | Posted 5 days ago
-            <br>
-            <img src="icons/rogue_star.png" style="width: 16px; height: 16px;"><img src="icons/rogue_star.png" style="width: 16px; height: 16px"><img src="icons/rogue_star.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"> Job Hours Match (6 / 8)
-            <br>
-            <img src="icons/rogue_star.png" style="width: 16px; height: 16px;"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"><img src="icons/rogue_star_empty.png" style="width: 16px; height: 16px"> Availability Coverage (6 / 15)
+                <!-- show job availability coverage stars -->
+                <img src="icons/rogue_star.png" style="width: 16px; height: 16px;" 
+                    ng-repeat="t in GetSolidStarCount(result.hours_match, result.hours_available) track by $index"/><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
+                    ng-repeat="u in GetEmptyStarCount(result.hours_match, result.hours_available) track by $index "/>
+                <small>Availability Coverage - <span ng-hide="result.hours_match && result.hours_available">N/A</span>
+                                         <span ng-show="result.hours_match && result.hours_available">({{result.hours_match}} / {{result.hours_available}})</span>
             </p>
         </a>
     </div>
+    <div ng-show="SearchAPI.SearchResults.start > 1 || SearchAPI.SearchResults.end < SearchAPI.SearchResults.total">
+            <br>
+            <a ng-click="OnPrevPage()" ng-show="SearchAPI.SearchResults.start > 1">&nbsp;&nbsp;&nbsp;&larr; Prev</a>
+            <a ng-click="OnNextPage()" ng-show="SearchAPI.SearchResults.end < SearchAPI.SearchResults.total" class="pull-right">Next &rarr;&nbsp;&nbsp;&nbsp;</a>
+            <br><br>
+        </li>
     <div>
-        <br>
-        <a href="#">&nbsp;&nbsp;&nbsp;&larr; Prev</a>
-        <a href="#" class="pull-right">Next &rarr;&nbsp;&nbsp;&nbsp;</a>
-        <br><br>
-    </div>
 </div>

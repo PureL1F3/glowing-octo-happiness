@@ -1,0 +1,14 @@
+.sh-lighttext {
+    color: #bdc3c7;
+}
+
+.sh-color {
+    color: #03AB52; 
+}
+
+.sh-jobtitle {
+    margin-top: 5px; 
+    margin-bottom: 1px; 
+    color: #03AB52; 
+    font-weight: normal;
+}

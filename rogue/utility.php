@@ -77,5 +77,19 @@ function getToken($length){
     return $token;
 }
 
+function get_empty_availability($days, $periods) {
+    $availability = array();
+    for($i = 0; $i < $days; $i++)
+    {
+        $availability[$i] = array();
+        for($j = 0; $j < $periods; $j++)
+        {
+            $availability[$i][$j] = true;
+        }
+    }
+
+    return $availability;
+}
+
 
 ?>
