@@ -6,9 +6,9 @@
     <div class="panel-body">
         <form novalidate>
             <div class="form-group" ng-class="{ 'has-error' : SearchErrors.location }">
-                <label>PostalCode</label>
+                <label>Postal Code</label>
                 <button ng-show="LocationAvailable" ng-click="OnGetLocation()" type="button" class="btn btn-info btn-sm pull-right">Use my location</button>
-                <input type="text" placeholder="Postal Code" class="form-control" ng-model="SearchParams.location.name"/>
+                <input type="text" maxlength="10" placeholder="" class="form-control" ng-model="SearchParams.location.name"/>
                 <p ng-show="LoadingLocationMessage" class="help-block">{{LoadingLocationMessage}}</p>
                 <p ng-show="SearchErrors.location" class="help-block">{{SearchErrors.location}}</p>
             </div>

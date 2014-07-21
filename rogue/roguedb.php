@@ -539,7 +539,7 @@ class StreamHireDB
     }
 
     function get_jobsearch_sql($keywords, $availability, $location_lat, 
-            $location_lon, $offset, $distance, $limit)
+            $location_lon, $distance, $offset, $limit)
     {
         $lon1 = $location_lon - $distance / abs(cos(deg2rad($location_lat)) * 69);
         $lon2 = $location_lon + $distance / abs(cos(deg2rad($location_lat)) * 69);
@@ -547,6 +547,7 @@ class StreamHireDB
         $lat2 = $location_lat + ($distance / 69);
 
         $availability_clause = "";
+        $availability_clause_days = "";
         for($i = 0; $i < count($availability); $i++)
         {
             $availability_clause_day = "";
@@ -558,46 +559,59 @@ class StreamHireDB
                     {
                         $availability_clause_day .= "(day=$i and hour in (";
                     }
-
                     $availability_clause_day .= "$j,";
                 }
             }
             if(strlen($availability_clause_day) > 0)
             {
                 $availability_clause_day = rtrim($availability_clause_day, ",");
-                $availability_clause_day .= "),";
-                $availability_clause .= $availability_clause_day;
-                if($i + 1 == count($availability))
-                {
+                $availability_clause_day .= "))";
 
-                    $availability_clause = rtrim($availability_clause, ",");
-                    $availability_clause = "(select jobid, count(hour) match_hours " .
-                                            "from jobpost_availability where " . $availability_clause . 
-                                            ") ja on j.id=ja.jobid ";
+                if(strlen($availability_clause_days) > 0) {
+                    $availability_clause_days .= " or ";
                 }
+                $availability_clause_days .= $availability_clause_day;
             }
+        }
+
+        if(strlen($availability_clause_days) > 0)
+        {
+            $availability_clause = rtrim($availability_clause_days, ",");
+            $availability_clause = "(select jobid, count(hour) match_hours " .
+                                    "from jobpost_availability where " . $availability_clause . 
+                                    ") ja on j.id=ja.jobid ";
         }
 
         $keyword_clause = "";
         //remove non alphanumeric and replace multi white space with single space
-        $keywords = get_search_keywords($keywords);
+        $keywords = $this->get_search_keywords($keywords);
         $sql_keywords = $this->_con->real_escape_string($keywords);
 
-        $keywords_array = explode ( $keywords ,' ');
-        foreach($keywords_array as $k)
+        if(strlen($sql_keywords) > 0)
         {
-            $keyword_clause .= "$k* ";
-        }
-        if(strlen($keyword_clause) > 0) 
-        {
-            rtrim($keyword_clause, ' ');
+            $keywords_array = explode (' ', $keywords);
+            if($keywords_array)
+            {
+                foreach($keywords_array as $k)
+                {
+                    $keyword_clause .= "$k* ";
+                }
+                if(strlen($keyword_clause) > 0) 
+                {
+                    rtrim($keyword_clause, ' ');
 
-            $keyword_clause = "match(j.title, j.description) against ('$keyword_clause' IN BOOLEAN MODE) ";
+                    $keyword_clause = "match(j.title, j.description) against ('$keyword_clause' IN BOOLEAN MODE) ";
+                }            
+            }            
         }
+
+
+
 
         $detination_clause = "j.lon between $lon1 and $lon2 and j.lat between $lat1 and $lat2 ";
 
-        $sql = "select SQL_CALC_FOUND_ROWS j.id, j.title, j.description, e.name, j.created, j.total_hours, ";
+        $sql = "select SQL_CALC_FOUND_ROWS j.id, j.title, j.description, e.name, e.name employer, " .
+            "j.created, DATEDIFF(NOW(), j.created) posted_days, j.total_hours, 0 applied, 0 viewed, ";
         if(strlen($availability_clause))
         {
             $sql .= " ja.match_hours, ";
@@ -626,9 +640,44 @@ class StreamHireDB
             $sql .= " and " . $keyword_clause;
         }
 
-        $sql .= "order by match_hours limit $offset, $limit;";
-
+        $sql .= "order by match_hours desc limit $offset, $limit;";
         return $sql;
+    }
+
+    function job_search($userid, $keywords, $availability, $hours_available, $location_lat, 
+            $location_lon, $distance, $page, $limit)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:jobs"); 
+        $jobs = array();
+        $offset = ($page - 1) * $limit;
+        $sql = $this->get_jobsearch_sql($keywords, $availability, $location_lat, 
+                    $location_lon, $distance, $offset, $limit);
+
+        syslog(LOG_INFO, $sql);
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        while($row = $result->fetch_array())
+        {
+            $job = array(   'id' => intval($row['id']),
+                            'title' => $row['title'],
+                            'employer' => $row['employer'],
+                            'posted_days' => $row['posted_days'],
+                            'hours_total' => intval($row['total_hours']),
+                            'hours_match' => intval($row['match_hours']),
+                            'hours_available' => $hours_available,
+                            'distance' => floatval($row['distance'])
+                        );
+            if($userid > 0) {
+                $job['applied'] = intval($row['applied']) == 0;
+                $job['viewed'] = intval($row['viewed']) == 0;
+            }
+            array_push($jobs, $job);
+        }
+
+        return $this->result(true, $jobs);
     }
 
     function jobs($keywords, $availability, $location_lat, 
@@ -636,7 +685,7 @@ class StreamHireDB
     {
         syslog(LOG_INFO, "Calling StreamHireDB:jobs"); 
         $jobs = array();
-        $sql = get_jobsearch_sql($keywords, $availability, $location_lat, 
+        $sql = $this->get_jobsearch_sql($keywords, $availability, $location_lat, 
                     $location_lon, $offset, $distance, $limit);
         $result = $this->_con->query($sql);
         if(!$result)
@@ -839,6 +888,67 @@ class StreamHireDB
         return $this->result(true, $jobs);
     }
 
+    function get_jobpost_hasapplied($userid, $jobid) {
+        $sql = "select count(*) ct from applications where jobid=$jobid and applicantid=$userid;";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $object = $result->fetch_object();
+        $applied = false;
+        if($object) {
+            $applied = intval($object->ct) != 0;
+        }
+        return $this->result(true, $applied);
+    }
+
+    function get_jobpost_hasviewed($userid, $jobid) {
+        $sql = "select count(*) ct from views where jobid=$jobid and jobseekerid=$userid;";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $object = $result->fetch_object();
+        $viewed = false;
+        if($object) {
+            $viewed = intval($object->ct) != 0;
+        }
+        return $this->result(true, $viewed);
+    }
+
+    function get_jobpost_toview($jobid) {
+        syslog(LOG_INFO, "Calling StreamHireDB:get_jobpost_toview for $jobid");        
+        $sql =  "select j.id, j.title, e.name employer, j.description, " . 
+                "DATEDIFF(NOW(), j.created) posted_days, j.external_url,  " .
+                "abs(DATEDIFF(j.expires, NOW())) expire_days, now() > j.expires expired from jobpost j " .
+                "join employer e on e.userid=j. employerid where j.id=$jobid;";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        $object = $result->fetch_object();
+        $job = null;
+        if($object)
+        {
+            
+            $job = array(
+                'id' => intval($object->id), 
+                'title' => $object->title, 
+                'employer' => $object->employer, 
+                'description' => $object->description,
+                'posted_days' => intval($object->posted_days),
+                'expire_days' => intval($object->expire_days), 
+                'expired' => $object->expired == 1,
+                'externalurl' => $object->external_url
+                );
+        }
+        return $this->result(true, $job);
+
+    }
+
     function get_employer_jobpost($userid, $jobid)
     {
         syslog(LOG_INFO, "Calling StreamHireDB:get_employer_jobpost");
@@ -856,7 +966,6 @@ class StreamHireDB
         "left join (select jobid, count(applicationid) ct from applications where isyes=0 group by jobid) c on c.jobid=j.id " .
         "where j.id=$jobid and j.employerid=$userid " .
         "group by j.id";
-        syslog(LOG_INFO, $sql);
         $result = $this->_con->query($sql);
         if(!$result)
         {

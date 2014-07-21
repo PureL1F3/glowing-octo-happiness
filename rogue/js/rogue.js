@@ -21,11 +21,13 @@
             controller : 'JobSeekerDashboardCtrl'
         }).when('/jobresults', {
             templateUrl : 'partials/jobsearch-results.html',
-            controller : 'JobSearchResultsCtrl'
+            controller : 'JobSearchResultsCtrl',
+            reloadOnSearch : false
         }).when('/jobpost', {
             templateUrl : 'partials/jobpost-create.html',
             controller : 'JobPostCreateCtrl'
-        }).when('/viewjob/:id', {
+        })
+        .when('/viewjob/:id/:search', {
             templateUrl : 'partials/jobpost-view.html',
             controller : 'JobPostViewCtrl'
         }).when('/registration/employer', {
@@ -34,12 +36,27 @@
         }).when('/registration/jobseeker', {
             templateUrl : 'partials/registration-employee.html',
             controller : 'JobSeekerRegistrationController'
+        }).when('/yesda', {
+            templateUrl : 'partials/yesda.html',
+            controller : 'YesdaCtrl',
+            resolve : {
+                'AccountData' : function(AccountAPI) {
+                    return AccountAPI.promise;
+                }
+            }
         }).otherwise({
             redirectTo : '/'
         });
     }]);
 
+    app.controller('YesdaCtrl', ['$scope', 'AccountAPI', function($scope, AccountAPI){
+        console.log('loading yesda');
+        $scope.AccountAPI = AccountAPI;
+    }]);
+
     app.controller('NavCtrl', ['$scope', '$location', 'AccountAPI', function($scope, $location, AccountAPI){
+        console.log('loading nav');
+        $scope.AccountAPI = AccountAPI;
         $scope.CurrentNav = '';
         $scope.ShowFindJobs = false;
         $scope.ShowAccount = false;
@@ -87,11 +104,6 @@
             AccountAPI.Logout();
             $location.path('/');
         };
-
-
-        AccountAPI.deffered.promise.then(function() {
-            $scope.UpdateNav();
-        });
         AccountAPI.registerObserverCallback($scope.UpdateNav);
     }])
 
@@ -470,12 +482,18 @@
         $scope.Load();
     }]);
 
-    app.controller('JobSearchHomeCtrl', ['SearchAPI', 'StaticAPI', 'LocationAPI', 'StreamHireAPI', '$scope', '$location', '$http', function(SearchAPI, StaticAPI, LocationAPI, StreamHireAPI, $scope, $location, $http){
+    app.controller('JobSearchHomeCtrl', ['SHUtility', 'SearchAPI', 'StaticAPI', 'LocationAPI', 'StreamHireAPI', '$scope', '$location', '$http', function(SHUtility, SearchAPI, StaticAPI, LocationAPI, StreamHireAPI, $scope, $location, $http){
         $scope.StaticAPI = StaticAPI;
         var that = this;
         $scope.DoSearch = function() {
             SearchAPI.SetSearchParams($scope.SearchParams);
-            $location.path('/jobresults');
+            var params = {
+                avail : SHUtility.ConvertAvailabilityToString($scope.SearchParams.availability, StaticAPI.AvailabilityDays.length, StaticAPI.AvailabilityCategories.length),
+                loc : $scope.SearchParams.location.name,
+                lat : $scope.SearchParams.location.lat,
+                lon : $scope.SearchParams.location.lon
+            }
+            $location.path('/jobresults').search(params);
         };
         $scope.OnSearch = function() {
             //check if already have location
@@ -484,12 +502,17 @@
 
             $scope.SearchParams.location.name = $scope.SearchParams.location.name.replace(/[^a-z0-9]/gi,'');
             $scope.SearchErrors = null;
+            var postalcode_err = 'Please enter your postal code';
+            var availability_err = 'Please enter your availability';
 
             
             var location_len = $scope.SearchParams.location.name.length;
             if(location_len < 1)
             {
-                $scope.ShowSearchError('location', 'Please enter your postal code');  
+                $scope.ShowSearchError('location', postalcode_err);
+                if(!SearchAPI.IsAvailabilityValid($scope.SearchParams.availability)) {
+                    $scope.ShowSearchError('availability', availability_err);
+                }
             }
             else if(!($scope.SearchParams.location.lat && $scope.SearchParams.location.lon))
             {
@@ -498,7 +521,7 @@
                     $scope.SearchParams.location.lat = lat;
                     $scope.SearchParams.location.lon = lon;
                     if(!SearchAPI.IsAvailabilityValid($scope.SearchParams.availability)) {
-                        $scope.ShowSearchError('availability', 'Please select your availability');
+                        $scope.ShowSearchError('availability', availability_err);
                     }
                     else
                     {
@@ -510,7 +533,7 @@
             else
             {
                 if(!SearchAPI.IsAvailabilityValid($scope.SearchParams.availability)) {
-                    $scope.ShowSearchError('availability', 'Please select your availability');
+                    $scope.ShowSearchError('availability', availability_err);
                 }
                 else
                 {
@@ -569,37 +592,190 @@
         };
     }]);
 
-    app.controller('JobSearchResultsCtrl', ['SearchAPI', 'StaticAPI', '$scope', function(SearchAPI, StaticAPI, $scope){
-        $scope.StaticAPI = StaticAPI;
-        $scope.SearchAPI = SearchAPI;
-        $scope.SearchParams = SearchAPI.GetSearchParams();
-        $scope.SearchParamsExpanded = false;
+    app.controller('JobSearchResultsCtrl', ['SHUtility', 'SearchAPI', 'StaticAPI', 'StreamHireAPI', 'LocationAPI', '$scope', '$location', '$anchorScroll', function(SHUtility, SearchAPI, StaticAPI, StreamHireAPI, LocationAPI, $scope, $location, $anchorScroll){
+        $scope.SHUtility = SHUtility;
+
+        $scope.CaptureCurrentLocation = function() {
+            $scope.CurrentLocation = $scope.SearchParams.location.name;
+            $scope.CurrentLocationLat = $scope.SearchParams.location.lat;
+            $scope.CurrentLocationLon = $scope.SearchParams.location.lon;
+        };
+        $scope.ScrollToTop = function() {
+            $location.hash('top');
+            $anchorScroll();
+        };
         $scope.ToggleSearchParamsExpanded = function() {
             $scope.SearchParamsExpanded = !$scope.SearchParamsExpanded;   
-            console.log("toggling");
         }
-
-
         //load results
         $scope.Load = function() {
-            var OnLoadSuccess = function(postedjobs) {
+            var OnLoadSuccess = function() {
                 $scope.Loading = false;
-                $scope.PostedJobs = postedjobs;
-                $scope.ScrollToTop();
+                if(SearchAPI.SearchResults.total === 0 || SearchAPI.SearchResults.end === SearchAPI.SearchResults.total) {
+                    $scope.SearchParamsExpanded = true;
+                }
             };
             var OnLoadError = function(error) {
-                if(error === "NOT_AUTH") {
-                    StreamHireAPI.BumpToLogin('employer', true);
-                }
-                else 
                 $scope.Loading = false;
-                console.log("Failed to load page" + error);
+                $scope.SearchParamsExpanded = true;
             };
             $scope.Loading = true;
-            StreamHireAPI.GetEmployerJobPosts($scope.Page, OnLoadSuccess, OnLoadError)
+            var search = $scope.SearchParams;
+            search['page'] = $scope.Page;
+            SearchAPI.PerformSearch(search, OnLoadSuccess, OnLoadError);
+        }
+        $scope.ShowSearchError = function(key, error) {
+            if(!$scope.SearchErrors) {
+                $scope.SearchErrors = {};
+            }
+            $scope.SearchErrors[key] = error;
+        };
+        $scope.OnSearch = function() {
+            //clear any search errors from before
+            $scope.SearchErrors = null;
+
+            //if we changed the location name but the coords are same - force refresh (set coords to null)
+            if($scope.SearchParams.location.name != $scope.CurrentLocation && 
+                (   $scope.CurrentLocationLat === $scope.SearchParams.location.lat && 
+                    $scope.CurrentLocationLon === $scope.SearchParams.location.lon)) {
+                $scope.SearchParams.location.lat = null;
+                $scope.SearchParams.location.lon = null;
+            };
+
+            //strip out any input that's not alphanumeric from the location name
+            var location = $scope.SearchParams.location.name.replace(/[^a-z0-9]/gi,'');
+            var location_len = location.length;
+            if(location_len < 1)
+            {
+                $scope.ShowSearchError('location', 'Please enter your postal code');
+                if(!SearchAPI.IsAvailabilityValid($scope.SearchParams.availability)) {
+                    $scope.ShowSearchError('availability', 'Please select your availability');
+                }
+            }
+            else if(!($scope.SearchParams.location.lat && $scope.SearchParams.location.lon))
+            {
+                var OnLocationSuccess = function(code, lat, lon) {
+                    $scope.SearchParams.location.name = code;
+                    $scope.SearchParams.location.lat = lat;
+                    $scope.SearchParams.location.lon = lon;
+                    if(!SearchAPI.IsAvailabilityValid($scope.SearchParams.availability)) {
+                        $scope.ShowSearchError('availability', 'Please select your availability');
+                    }
+                    else
+                    {
+                        $scope.DoSearch();
+                    }
+                }
+                StreamHireAPI.GetLocation($scope.SearchParams.location.name, OnLocationSuccess);
+            }
+            else
+            {
+                if(!SearchAPI.IsAvailabilityValid($scope.SearchParams.availability)) {
+                    $scope.ShowSearchError('availability', 'Please select your availability');
+                }
+                else
+                {
+                    $scope.DoSearch();
+                }
+            }
+        };
+
+        $scope.DoSearch = function() {
+             SearchAPI.SetSearchParams($scope.SearchParams);
+             $scope.Page = 1;
+             $scope.Load();
+        };
+
+        $scope.InitSearchParams = function() {
+            //start with an empty search 
+            var searchparams = SearchAPI.GetEmptySearchParams();
+
+            //load the location and availability search params from search string
+            var urlparams = $location.search(); 
+            var valid_location = false;
+            var loc = null;
+            var lat = null;
+            var lon = null;
+            var MAX_LOCATION_LEN = 10;
+            if(urlparams.loc 
+                && (typeof urlparams.loc) === 'string'
+                && urlparams.loc.length >= 1 
+                && urlparams.loc.length <= MAX_LOCATION_LEN)
+            {
+                loc = urlparams.loc;
+                if(urlparams.lat)
+                {
+                    lat = parseFloat(urlparams.lat);
+                    if(!isNaN(lat) && Math.abs(lat) <= 90)
+                    {
+                        if(urlparams.lon)
+                        {
+                            lon = parseFloat(urlparams.lon);
+                            if(!isNaN(lon) && Math.abs(lon) <= 180) {
+                                valid_location = true;
+                            }
+
+                        }
+                    }
+                }
+            }
+            var valid_availability = false;
+            var availability = null;
+            if(urlparams.avail 
+               && (typeof urlparams.loc) === 'string') {
+                availability = SHUtility.ConvertStringToAvailability(urlparams.avail);
+                valid_availability = (availability != null);
+            }
+
+            var valid_page = true;
+            var page = 1;
+            if(urlparams.p) {
+                var p = parseInt(urlparams.p);
+                if(!isNaN(p) && p > 0) {
+                    page = p;
+                }
+                else {
+                    valid_page = false;
+                }
+            }
+
+            //if we have valid search params from url assign them else clear them out
+            var valid_urlsearchparams = valid_availability && valid_location && valid_page;
+            if(valid_urlsearchparams) {
+                searchparams.location.name = loc;
+                searchparams.location.lat = lat;
+                searchparams.location.lon = lon
+                searchparams.availability = availability;
+                searchparams.page = page;
+            }
+            else {
+                $location.search({});
+            }
+            $scope.SearchParams = searchparams;
+
+            //capture the current location used to perform the search - will be used to know if need to reload location
+            if(valid_urlsearchparams) {
+                $scope.CaptureCurrentLocation();
+                //if we have a valid search perform
+            }
         }
 
+        $scope.SearchErrors = null;
+        //setup libs used in UI
+        $scope.StaticAPI = StaticAPI;
+        $scope.SearchAPI = SearchAPI;
 
+        //search param setup
+        $scope.SearchParams = null;
+        $scope.InitSearchParams();
+        //$scope.SearchParams = SearchAPI.GetSearchParams();
+        //current location capture for location reload on change
+        $scope.CurrentLocation = null;
+        $scope.CurrentLocationLat = null;
+        $scope.CurrentLocationLon = null;
+        $scope.CaptureCurrentLocation();
+        //search param div expansion
+        $scope.SearchParamsExpanded = false;
         //pagination -------------------------------------------------
         $scope.Page = 1;
         $scope.OnNextPage = function() {
@@ -645,9 +821,11 @@
                         $scope.OnGotLocationError();
                 }}, 3500);
         };
-    }]);
 
+        //$scope.Load();
+    }]);
     app.controller('JobPostCreateCtrl', ['StaticAPI', '$scope', '$location', '$routeParams', 'AccountAPI', 'StreamHireAPI', 'LocationAPI', function(StaticAPI, $scope, $location, $routeParams, AccountAPI, StreamHireAPI, LocationAPI) {    
+
         $scope.DisableLocation = function() {
             $scope.LoadingLocationMessage = 'Sorry location is unavailable - please enter a postal code.';
             $scope.GettingLocation = false;
@@ -727,28 +905,107 @@
         $scope.LoadingLocationMessage = null;
     }]);
 
-    app.service('SearchAPI', ['$http', 'StaticAPI', function($http, StaticAPI){
-        this.SearchResults = {
-            offset : 0,
-            limit : 10,
-            total : 100,
-            start : 1,
-            end : 10,
-            results : [
-                {
-                    id : 1,
-                    title : 'Beverage Manager',
-                    employer : 'Red Wines Tavern',
-                    postdate : '2014-07-04',
-                    hours : {
-                        match : 6,
-                        job : 8,
-                        coverage : 15
-                    },
-                    applied : false,
-                    viewed : true
+    app.service('SHUtility', [function(){
+
+        this.ConvertAvailabilityToString = function(availability, days, categories) {
+            var path = '' + days + categories;
+            for(var i = 0; i < availability.length; i++) {
+                for(var j = 0; j < availability[i].length; j++) {
+                    path += availability[i][j] ? '1' : '0';
                 }
-            ]
+            }
+            return path;
+        }
+        this.ConvertStringToAvailability = function(path) {
+            var pathbits = path.split('');
+            var pathbitslen = pathbits.length;
+            if(pathbitslen <= 2) {
+                return null;
+            }
+            var days = parseInt(path[0]);
+            var categories = parseInt(path[1]);
+            if( isNaN(days) || days===0 || isNaN(categories) || categories===0 || (pathbitslen != 2 + days * categories))
+            {
+                return null;
+            }
+            var availability = [];
+            for(var i = 0; i < days; i++) {
+                availability[i] = [];
+                for(var j = 0; j < categories; j++) {
+                    availability[i][j] = (pathbits[2 + i * categories + j] === '1');
+                }
+            }
+            console.log(availability);
+            return availability;
+        }
+
+        this.GetInDaysString = function(days) {
+            var str = "";
+            if(days == 0) {
+                str = "today";
+            }
+            else if(days == 1) {
+                str = "in 1 day";
+            }
+            else {
+                str = "in " + days + " days";
+            }
+            return str;
+        }
+
+        this.GetDaysAgoString = function(days) {
+            var str = "";
+            if(days == 0) {
+                str = "today";
+            }
+            else if(days == 1) {
+                str = "1 day ago";
+            }
+            else {
+                str = "" + days + " days ago";
+            }
+            return str;
+        };
+
+        this.getStarCount = function(frac) {
+
+            var result;
+            if(frac === 0) {
+                result = 0;
+            }
+            else if(frac <= 0.25) {
+                result = 1;
+            }
+            else if(frac <= 0.5) {
+                result = 2;
+            }
+            else if(frac <= 0.75) {
+                result = 3;
+            }
+            else {
+                result = 4;
+            }
+            return result;
+        };
+
+        this.GetEmptyStarCount = function(num, denom) {
+            var result = denom === 0 ? 0 : this.getStarCount((1.0 * num) / (1.0 * denom));
+            return new Array(4 - result);
+        };
+
+        this.GetSolidStarCount = function(num, denom) {
+            var result = denom === 0 ? 0 : this.getStarCount((1.0 * num) / (1.0 * denom));
+            return new Array(result);
+        };
+
+    }]);
+    app.service('SearchAPI', ['$http', 'StaticAPI', function($http, StaticAPI){
+        var that = this;
+        this.SearchResults = {
+            total : 0,
+            start : 0,
+            end : 0,
+            results : []
         };
 
         this.GetEmptySearchParams = function() {
@@ -764,6 +1021,10 @@
             return params;
         };
 
+        this.GetCopyOfAvailability =function(availability) {
+            return angular.copy(availability);
+        };
+
         this.GetSearchParams = function() {
             return angular.copy(this.SearchParams);
         };
@@ -776,22 +1037,45 @@
             return this.SearchResults.total === 0;
         };
 
-        this.AreActionableSearchParams = function(params) {
-            if(!(params.location.name.length > 0 && params.location.lat && params.location.lon))
-            {
-                return false;
-            }
+        this.PerformSearch = function(searchParams, onSuccess, onError) {
+            //onSuccess : function(results)
+            //onError : function(errors, msg)
+            var msgError = 'Your search had some problem(s). Please check and try again.';
+            var msgFailed = 'We could not perform your search right now. Please try again later.';
 
-            var has_availability = false;
-            for(var i = 0; i < StaticAPI.AvailabilityDays.length; i++) {
-                for(var j = 0; j < StaticAPI.AvailabilityCategories.length; j++) {
-                    if(params.availability && params.availability[i] && params.availability[i][j]) {
-                        has_availability = true;
-                        break;
+            var config = {
+                method: 'POST',
+                data : searchParams,
+                url : '/rogue/search.php'
+            };
+            console.log(config);
+            var promise = $http(config);
+            promise.success(function(data, status, headers, config) {
+                console.log(data);
+                if(!data.ok) {
+                    if(onError) {
+                        onError(null, msgFailed);
                     }
                 }
-            }
-            return has_availability;
+                else if(data.result.errors) {
+                    if(onError) {
+                        onError(data.result.errors, msgError);
+                    }
+                }
+                else {
+                    that.SearchResults = data.result;
+                    if(onSuccess) {
+                        onSuccess();
+                    }
+                }
+            });
+            promise.error(function(data, status, headers, config) {
+                console.log("Fail search");
+                console.log(data);
+                if(onError) {
+                    onError(null, msgFailed);
+                }
+            });
         };
 
         this.IsAvailabilityValid = function(availability) {
@@ -875,7 +1159,7 @@
         this.Load();
     }]);
 
-    app.service('AccountAPI', ['$http', '$cookieStore', '$q', function($http, $cookieStore, $q) { 
+/*    app.service('AccountAPI', ['$http', '$q', function($http, $q) { 
         var that = this;
         this.observerCallbacks = [];  
         this.registerObserverCallback = function(callback){
@@ -1006,7 +1290,7 @@
         this.deffered = $q.defer();
         this.Account = null;
         this.Load();
-    }]);
+    }]);*/
 
     app.controller('EmployerRegistrationController', ['$scope', 'StaticAPI', 'AccountAPI', 'StreamHireAPI', function($scope, StaticAPI, AccountAPI, StreamHireAPI) {
         $scope.OnForgotPassword = function() {
@@ -1102,68 +1386,26 @@
     }]);
 
     app.controller('JobPostViewCtrl', 
-        ['StaticAPI', '$scope', '$window', '$http', 
-        function(StaticAPI, $scope, $window, $http){
+        ['SHUtility' , 'StaticAPI', '$scope', '$window', '$location', '$routeParams', 'AccountAPI', 'StreamHireAPI', 'SearchAPI',
+        function(SHUtility, StaticAPI, $scope, $window, $location, $routeParams, AccountAPI, StreamHireAPI, SearchAPI){
+        $scope.SHUtility = SHUtility;
         $scope.StaticAPI = StaticAPI;
-        
-        $scope.Job = {
-            id : 1,
-            title : 'bar server',
-            employer : 'keg',
-            description : 'this is some shit\n\nttell me more',
-            externalurl : '',
-            postdays : 4,
-            postdate : null,
-            total_hours : null,
-            match_hours : null,
-            availability_hours : null,
-            //job hours match
-            job_hours_match : false,
-            job_hours_match_solid : 3,
-            job_hours_match_empty : 1,
-            //availability stars
-            availability_match : false,
-            availability_match_solid : 0,
-            availability_match_empty : 4,
-            //show applied
-            applied : false
-        };
-
-        $scope.getTimes=function(n){
-            return new Array(n);
-        };
-
-
         $scope.Application = {
-            jobid : $scope.Job.id,
+            jobid : parseInt($routeParams.id),
             name : '',
             email : '',
             phone : '',
             resume : '',
-            availability : StaticAPI.GetFullAvailability(),
+            availability :  StaticAPI.GetFullAvailability(),
             availability_hours : null
         };
-
         $scope.ApplicationError = null;
         $scope.ApplicationErrorMessage = null;
         $scope.ApplicationSubmitting = false;
-
-
-                // There were some errors with your registration. Please check the form and try again.
-
         $scope.ShowApplication = false;
         $scope.ShowApplicationSuccess = false;
-
-        $scope.ToggleSave = function() {
-            alert("saved it!");
-        };
-
-        $scope.OnEmail = function() {
-            alert("e-mail it!");
-        }
-
         $scope.OnApply = function() {
-            if($scope.Job.externalurl || $scope.Job.externalurl.length > 0)
+            if($scope.Job.externalurl && $scope.Job.externalurl.length > 0)
             {
                 $window.open($scope.Job.externalurl);
             }
@@ -1173,54 +1415,65 @@
             }
         };
 
-        $scope.ShowApplicationErrorMessage = function(msg)
-        {
-            $scope.ApplicationErrorMessage = msg;
-        }
-
         $scope.OnSubmitApplication = function() {
-
+            var OnSubmitApplicationError = function(errors, errmsg) {
+                $scope.ApplicationError = errors;
+                $scope.ApplicationErrorMessage = errmsg;
+                $scope.ApplicationSubmitting = false;
+            };
+            var OnSubmitApplicationSuccess = function() {
+                $scope.Job.applied = true;
+                $scope.ShowApplication = false;
+                $scope.ShowApplicationSuccess = true;
+                $scope.ApplicationSubmitting = false;
+            }
             $scope.ApplicationError = null;
             $scope.ApplicationErrorMessage = null;
             $scope.ApplicationSubmitting = true;
-            
-            var config = {
-                method: 'POST',
-                url: '/rogue/submit_jobapplication.php',
-                data: $scope.Application
-            };
-            console.log(config);
-
-            $promise = $http(config);
-            $promise.success(function(data, status, headers, config) {
-                console.log(data);
-                if(!data.ok)
-                {
-                    $scope.ShowApplicationErrorMessage(data.result);
-                }
-                else
-                {
-                    if(data.result.errors)
-                    {
-                        $scope.ApplicationError =  data.result.errors;
-                        $scope.ShowApplicationErrorMessage('Your application had some problem(s). Please check and resubmit.');
-                    }
-                    else
-                    {
-                        $scope.Job.applied = true;
-                        $scope.ShowApplication = false;
-                        $scope.ShowApplicationSuccess = true;
-                    }
-                }
-                $scope.ApplicationSubmitting = false;
-            });
-            $promise.error(function(data, status, headers, config) {
-                console.log(data);
-                $scope.ApplicationSubmitting = false;
-                $scope.ShowApplicationErrorMessage('We could not process your application. Please try again later.');
-            });            
+            StreamHireAPI.SubmitJobApplication($scope.Application, OnSubmitApplicationSuccess, OnSubmitApplicationError);          
         };
-    }])
+
+        $scope.Load = function() {
+            var OnLoadSucccess = function(job) {
+                $scope.Job = job;
+                $scope.LoadingJobPost = false;
+            };
+
+            var OnLoadError = function(error) {
+                $scope.JobLoadError = error;
+            }
+            $scope.JobLoadError = null;
+            $scope.LoadingJobPost = true;
+            console.log('loading ');
+            console.log($scope.JobId);
+            console.log($scope.Availability);
+            StreamHireAPI.LoadJobForUserView($scope.Application.jobid, $scope.Application.availability, OnLoadSucccess, OnLoadError);
+        };
+
+        $scope.OnClickBack = function() {
+            $window.history.back();
+        };
+
+        AccountAPI.deffered.promise.then(function() {
+            console.log($location.search());
+            //setup availability
+            if($routeParams.search === 'search') {
+                $scope.Application.availability = SearchAPI.GetCopyOfAvailability(SearchAPI.SearchParams.availability);
+            }
+            else if(AccountAPI.Account && AccountAPI.Account.jobseeker) {
+                $scope.Application.availability = SearchAPI.GetCopyOfAvailability(AccountAPI.Account.jobseeker.availability);
+            }
+
+            //setup application form
+            if(AccountAPI.Account && AccountAPI.Account.jobseeker) {
+                $scope.Application.name = AccountAPI.Account.account.name;
+                $scope.Application.email = AccountAPI.Account.account.email;
+                $scope.Application.phone = AccountAPI.Account.account.phone;
+                $scope.Application.resume = AccountAPI.Account.jobseeker.resume;            
+            }
+            $scope.Load();
+        });
+    }]);
 
     app.controller('JobPostCandidateSeekerController', 
         ['$scope', 
@@ -1242,7 +1495,7 @@
         };
     }]);
 
-    app.controller('JobSeekerRegistrationController', ['$scope', 'StaticAPI', 'AccountAPI', 'LocationAPI', function($scope, StaticAPI, AccountAPI, LocationAPI) {   
+    app.controller('JobSeekerRegistrationController', ['$scope', 'StaticAPI', 'AccountAPI', 'LocationAPI', 'StreamHireAPI', function($scope, StaticAPI, AccountAPI, LocationAPI, StreamHireAPI) {   
         $scope.OnForgotPassword = function() {
             var OnForgotPasswordSuccess = function() {
                 $scope.HideForgotPasswordButton = true;
@@ -1382,7 +1635,10 @@
     }]);
 
 
-    app.controller('JobSeekerDashboardCtrl', ['$scope', '$location', 'StreamHireAPI', function($scope, $location, StreamHireAPI){
+    app.controller('JobSeekerDashboardCtrl', ['SHUtility', '$scope', '$location', 'StreamHireAPI', function(SHUtility, $scope, $location, StreamHireAPI){
+        
+
+
         $scope.OnFindJobs = function() {
             $location.path("/");
         };
@@ -1424,37 +1680,6 @@
             $scope.Load($scope.Page + 1, $scope.JobTypes);
         };
 
-        $scope.getStarCount = function(frac) {
-
-            var result;
-            if(frac === 0) {
-                result = 0;
-            }
-            else if(frac <= 0.25) {
-                result = 1;
-            }
-            else if(frac <= 0.5) {
-                result = 2;
-            }
-            else if(frac <= 0.75) {
-                result = 3;
-            }
-            else {
-                result = 4;
-            }
-            return result;
-        };
-
-        $scope.GetEmptyStarCount = function(num, denom) {
-            var result = $scope.getStarCount((1.0 * num) / (1.0 * denom));
-            return new Array(4 - result);
-        };
-
-        $scope.GetSolidStarCount = function(num, denom) {
-            var result = $scope.getStarCount((1.0 * num) / (1.0 * denom));
-            return new Array(result);
-        };
-
         //setup ---------------------------------------------------------
         $scope.FirstLoad = true;
         $scope.Page = 1;
@@ -1477,6 +1702,81 @@
     app.service('StreamHireAPI', ['$http', '$location', function($http, $location) {
         this.Redirect = null;
         var that = this;
+
+        this.LoadJobForUserView = function(id, availability, onSuccess, onError) {
+            //onSuccess(job)
+            //onError(errmsg)
+            var config = {
+                method: 'POST',
+                url: '/rogue/get_jobpost.php',
+                data: {
+                    jobid : id,
+                    availability : availability
+                }
+            };
+            var failMsg = "Sorry, this jobpost is unavailable. Please try again later.";
+            $promise = $http(config);
+            $promise.success(function(data, status, headers, config) {
+                console.log(data);
+                if(!data.ok) {
+                    if(onError) {
+                        onError(failMsg);
+                    }
+                }
+                else {
+                    if(onSuccess) {
+                        onSuccess(data.result);
+                    }
+                    else
+                    {
+                        onError(failMsg);
+                    }
+                }
+            });
+            $promise.error(function(data, status, headers, config) {
+                if(onError) {
+                    onError(failMsg);
+                }
+            });
+        };
+
+        this.SubmitJobApplication = function(application, onSuccess, onError) {
+            //onSuccess()
+            //onError(errors, errmsg)
+            var config = {
+                method: 'POST',
+                url: '/rogue/submit_jobapplication.php',
+                data: application
+            };
+
+            var failMsg = "Sorry, you application could not be submitted. Please try again later.";
+            var errorMsg = "Your application had some problems. Please check and submit again.";
+
+            $promise = $http(config);
+            console.log($promise);
+            $promise.success(function(data, status, headers, config) {
+                if(!data.ok) {
+                    if(onError) {
+                        onError(null, failMsg);
+                    }
+                }
+                else {
+                    if(data.result.errors) {
+                        onError(data.result.errors, errorMsg);
+                    }
+                    else {
+                        if (onSuccess) {
+                            onSuccess();
+                        }
+                    }
+                }
+            });
+            $promise.error(function(data, status, headers, config) {
+                if(onError) {
+                    onError(null, failMsg);
+                }
+            });
+        };
         this.GetLocation = function(code, onSuccess) {
             var OnLocationFromDBSuccess = function(name, lat, lon) {
                 console.log("got db location");
@@ -1792,4 +2092,153 @@
         };
 
     }]);
+
+app.constant('MagicMikeAPI', {
+    //----------------------_HTTP PLAYPEN_---------------------------
+    //---------------------------------------------------------------
+    GET : 'GET',
+    POST : 'POST',
+    //----------------------_ACTION TARGETS_-------------------------
+    //---------------------------------------------------------------
+    //.account loading
+    LoadAccount : '/rogue/load_account.php',
+    //.account login submission
+    LoginEmployerAccount : '/rogue/login_employer.php',
+    LoginJobseekerAccount : '/rogue/login_jobseeker.php',
+    //.account registration submission
+    RegisterEmployerAccount : '/rogue/register_employer.php',
+    RegisterJobseekerAccount : '/rogue/register_jobseeker.php',
+    //-----------------------_DEFINITIONS_---------------------------
+    //---------------------------------------------------------------
+    Employer : 'employer',
+    Jobseeker : 'jobseeker',
+
+    //-----------------------_ROUTING_-------------------------------
+    //---------------------------------------------------------------
+    LocationHome : '/'
+});
+
+app.service('AccountAPI', ['$http', '$cookieStore', '$q', 'MagicMikeAPI', function($http, $cookieStore, $q, MagicMikeAPI) { 
+    var that = this;
+    this.observerCallbacks = [];  
+    this.IsEmployer = function() {
+        return this.Account && this.Account.employer;
+    };
+    
+    this.IsJobseeker = function() {
+        return this.Account && this.Account.jobseeker;
+    };
+
+    this.registerObserverCallback = function(callback){
+        this.observerCallbacks.push(callback);
+    };
+
+    this.notifyObservers = function(){
+        angular.forEach(this.observerCallbacks, function(callback){
+            callback();
+        });
+    };
+
+    this.UpdateAccount = function(account) {
+        this.notifyObservers();
+    };
+    this.Logout = function() {
+        document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        this.UpdateAccount(null);
+        $location.path(MagicMikeAPI.LocationHome);
+    };
+    this.Register = function(type, registration) {
+        //success - empty result
+        //error - dictionary {msg, [errors]}
+        var deferred = $q.defer();
+        var config = {
+            method: MagicMikeAPI.POST,
+            url :   type == MagicMikeAPI.Employer ? MagicMikeAPI.RegisterEmployerAccount : MagicMikeAPI.RegisterJobseekerAccount,
+            data : registration
+        };
+
+        var msgFailed = 'We could not register you right now. Please try again later.';
+        var msgError = 'Your registration had some problem(s). Please check and try again.';
+
+        var promise = $http(config);
+        promise.success(function(data, status, headers, config) {
+            if(!data.ok) {
+                deferred.reject({msg : msgFailed});
+            }
+            else if(data.result.errors) {
+                deferred.reject({msg : msgError, errors : data.result.errors});
+            }
+            else {
+                that.UpdateAccount(data.result);
+                deferred.resolve();
+            }
+        });
+        promise.error(function(data, status, headers, config) {
+            deferred.reject({msg : msgFailed});
+        });
+        return deferred;
+    };
+    this.Login = function(type, login) {
+        //success - empty result
+        //error - dictionary {msg, [errors]}
+        var deferred = $q.defer();
+        var config = {
+            method: MagicMikeAPI.POST,
+            url : type == MagicMikeAPI.Employer ? MagicMikeAPI.LoginEmployerAccount : MagicMikeAPI.LoginJobseekerAccount,
+            data : login
+        };
+
+        var msgFailed = 'We could not log you in right now. Please try again later.';
+        var msgError = 'Your login had some problem(s). Please check and try again.';
+
+        var promise = $http(config);
+        promise.success(function(data, status, headers, config) {
+            if(!data.ok) {
+                deferred.reject({msg : msgFailed});
+            }
+            else if(data.result.errors) {
+                deferred.reject({msg : msgError, errors : data.result.errors});
+            }
+            else {
+                that.UpdateAccount(data.result);
+                deferred.resolve();
+            }
+        });
+        promise.error(function(data, status, headers, config) {
+            deferred.reject({msg : msgFailed});
+        });
+        return deferred;
+    };
+    this.Load = function() {
+        console.log('loading account');
+        var deferred = $q.defer();
+        var config = {
+            method: MagicMikeAPI.GET,
+            url :   MagicMikeAPI.LoadAccount
+        };
+        var promise = $http(config);
+        promise.success(function(data, status, headers, config) {
+            console.log('loading account -- succs');
+                if(!data.ok) {
+                     //something went wrong
+                    console.log("Failed to load account. Continue with resolve!");
+                    console.log(data);
+                }
+                else {
+                    that.UpdateAccount(data.result);
+                }
+                deferred.resolve();
+        });
+        promise.error(function(data, status, headers, config) {
+            console.log('loading account - errr');
+                deferred.resolve();
+        });
+    };
+    this.Account = null;
+    this.deferred = $q.defer();
+    this.promise = this.deferred.promise;
+    this.Load();
+    return this;
+}]);
+
 })();

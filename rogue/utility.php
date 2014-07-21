@@ -91,5 +91,4 @@ function get_empty_availability($days, $periods) {
     return $availability;
 }
 
-
 ?>

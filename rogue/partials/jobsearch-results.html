@@ -1,34 +1,3 @@
-SearchParamsExpanded
-ToggleSearchParamsExpanded()
-
-SearchParams.location.name
-
-StaticAPI.AvailabilityDays
-StaticAPI.AvailabilityCategories
-SearchParams.availability[$index][$parent.$index]
-
-OnSearch()
-
-SearchAPI.NoResults()
-
-SearchAPI.SearchResults.start
-SearchAPI.SearchResults.end
-SearchAPI.SearchResults.total
-SearchAPI.SearchResults.results
-
-result.title
-result.applied
-result.viewed
-result.employer
-result.postdate
-result.hours_match
-result.hours_total
-result.hours_available
-
-OnPrevPage()
-OnNextPage()
-
-
 <div class="panel panel-success">
     <div class="panel-heading">
         <h3 class="panel-title">
@@ -39,13 +8,16 @@ OnNextPage()
     </div>
     <div class="panel-body" ng-show="SearchParamsExpanded">
         <form novalidate >
-            <div class="form-group">
-                <label>Location</label>
-                <button type="button" class="btn btn-info btn-sm pull-right">Use my location</button>
-                <input type="text" placeholder="Postal Code" class="form-control" ng-model="SearchParams.location.name" />
+            <div class="form-group" ng-class="{ 'has-error' : SearchErrors.location }">
+                <label>Postal Code</label>
+                <button ng-show="LocationAvailable" ng-click="OnGetLocation()" type="button" class="btn btn-info btn-sm pull-right">Use my location</button>
+                <input type="text" maxlength="10" placeholder="" class="form-control" ng-model="SearchParams.location.name" />
+                <p ng-show="LoadingLocationMessage" class="help-block">{{LoadingLocationMessage}}</p>
+                <p ng-show="SearchErrors.location" class="help-block">{{SearchErrors.location}}</p>
             </div>
-            <div class="form-group">
+            <div class="form-group" ng-class="{ 'has-error' : SearchErrors.availability }">
                 <label>Availability</label>
+                <p ng-show="SearchErrors.availability" class="help-block">{{SearchErrors.availability}}</p>
                 <table class="table table-bordered table-condensed table-striped text-center">
                     <tr>
                         <th></th>
@@ -63,8 +35,12 @@ OnNextPage()
                 <label>Keywords</label>
                 <input type="text" class="form-control" ng-model="SearchParams.keywords" />
             </div>
+            <div class="alert alert-danger text-center" role="alert" ng-show="SearchErrors">
+                Please enter your postal code and availability
+            </div>
             <div class="text-center">
-                <button type="button" class="btn btn-success" ng-click="OnSearch()">Find Jobs</button>
+                <button type="button" class="btn btn-success" ng-click="OnSearch()" ng-hide="Loading">Find Jobs</button>
+                <img src="icons/loading.gif" ng-show="Loading" />
             </div>
         </form>
     </div>
@@ -77,12 +53,12 @@ OnNextPage()
     </div>
     <div class="panel-body">
         Sorry there were no job matches.
-        <br><br>
+<!--         <br><br>
         <em>Search suggestions:</em>
         <ol>
             <li>Use broad keywords like retail, office, cashier, secratary, warehouse.</li>
             <li>Expand your availability if possible.</li>
-        </ol>
+        </ol> -->
     </div>
 </div>
 <div class="panel panel-success" ng-hide="SearchAPI.NoResults()">
@@ -92,27 +68,29 @@ OnNextPage()
         </h3>
     </div>
     <div class="list-group">
-        <a href="#" class="list-group-item" ng-repeat="result in SearchAPI.SearchResults.results">
+        <a href="#/viewjob/{{result.id}}/search" class="list-group-item" ng-repeat="result in SearchAPI.SearchResults.results">
             <h4 style="margin-top: 5px; margin-bottom: 1px; color: #03AB52; font-weight: normal;"><u>{{result.title}}</u>
                 <span class="label label-danger pull-right" ng-show="result.applied">Applied</span>
                 <span class="label label-warning pull-right" ng-show="!result.applied && result.viewed">Viewed</span>
             </h4>
             <h5 style="margin-top: 5px; margin-bottom: 1px;">{{result.employer}}</h5>
             <p>
-                <small style="color: #bdc3c7;">Posted {{result.postdate}} days ago</small>
+                <small class="sh-lighttext">
+                    Posted {{SHUtility.GetDaysAgoString(result.posted_days)}}
+                </small>
                 <br>
                 <!-- show job match stars -->
                 <img src="icons/rogue_star.png" style="width: 16px; height: 16px;" 
-                    ng-repeat="t in GetSolidStarCount(result.hours_match, result.hours_total) track by $index"/><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
-                    ng-repeat="u in GetEmptyStarCount(result.hours_match, result.hours_total) track by $index "/>
+                    ng-repeat="t in SHUtility.GetSolidStarCount(result.hours_match, result.hours_total) track by $index"/><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
+                    ng-repeat="u in SHUtility.GetEmptyStarCount(result.hours_match, result.hours_total) track by $index "/>
                 <small>Job Hours Match - <span ng-hide="result.hours_match && result.hours_total">N/A</span>
                                          <span ng-show="result.hours_match && result.hours_total">({{result.hours_match}} / {{result.hours_total}})</span>
                 </small>
                 <br>
                 <!-- show job availability coverage stars -->
                 <img src="icons/rogue_star.png" style="width: 16px; height: 16px;" 
-                    ng-repeat="t in GetSolidStarCount(result.hours_match, result.hours_available) track by $index"/><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
-                    ng-repeat="u in GetEmptyStarCount(result.hours_match, result.hours_available) track by $index "/>
+                    ng-repeat="t in SHUtility.GetSolidStarCount(result.hours_match, result.hours_available) track by $index"/><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
+                    ng-repeat="u in SHUtility.GetEmptyStarCount(result.hours_match, result.hours_available) track by $index "/>
                 <small>Availability Coverage - <span ng-hide="result.hours_match && result.hours_available">N/A</span>
                                          <span ng-show="result.hours_match && result.hours_available">({{result.hours_match}} / {{result.hours_available}})</span>
             </p>

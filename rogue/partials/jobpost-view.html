@@ -1,31 +1,30 @@
 <div class="panel">
   <div class="panel-heading">
     <p>
-      <a href="#">&larr; Back</a>
+      <a ng-click="OnClickBack()">&larr; Back</a>
       <!-- <span class="pull-right"><a ng-click="ToggleSave()">Save</a> | <a ng-click="OnEmail()">E-Mail</a></span> -->
     </p>
     <div class="panel-title">  
-        <h3 id="" style="margin-top: 5px; margin-bottom: 1px; color: #03AB52; font-weight: normal;">
-        {{Job.title}}
-        </h3>
+        <h3 class="sh-jobtitle">{{Job.title}}</h3>
         <h4>{{Job.employer}}</h4>
         <div>
-            <span ng-show="Job.applied" class="label label-danger">Applied</span><small style="color: #bdc3c7;">&nbsp;Posted {{Job.postdays}} days ago</small>
+            <span ng-show="Job.expired" class="label label-danger">Expired</span>
+            <span ng-show="Job.applied" class="label label-success">Applied</span><small style="color: #bdc3c7;">&nbsp;Posted {{SHUtility.GetDaysAgoString(Job.posted_days)}}</small>
             <br>
             <!-- show job match stars -->
             <img src="icons/rogue_star.png" style="width: 16px; height: 16px;" 
-                ng-repeat="t in getTimes(Job.job_hours_match_solid) track by $index"/><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
-                ng-repeat="u in getTimes(Job.job_hours_match_empty) track by $index "/>
-            <small>Job Hours Match - <span ng-hide="Job.job_hours_match">N/A</span>
-                                     <span ng-show="Job.job_hours_match">({{Job.match_hours}} / {{Job.total_hours}})</span>
+                ng-repeat="t in SHUtility.GetSolidStarCount(Job.match_hours, Job.total_hours) track by $index"/><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
+                ng-repeat="u in SHUtility.GetEmptyStarCount(Job.match_hours, Job.total_hours) track by $index "/>
+            <small>Job Hours Match - <span ng-show="Job.availability_hours===0">N/A</span>
+                                     <span ng-hide="Job.availability_hours===0">({{Job.match_hours}} / {{Job.total_hours}})</span>
             </small>
             <br>
             <!-- show job availability coverage stars -->
             <img ng-src="icons/rogue_star.png" style="width: 16px; height: 16px;" 
-                ng-repeat="t in getTimes(Job.availability_match_solid) track by $index" /><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
-                ng-repeat="t in getTimes(Job.availability_match_empty) track by $index" />
-            <small>Availability Coverage - <span ng-hide="Job.availability_match">N/A</span>
-                                     <span ng-show="Job.availability_match">({{Job.match_hours}} / {{Job.availability_hours}})</span>
+                ng-repeat="t in SHUtility.GetSolidStarCount(Job.match_hours, Job.availability_hours) track by $index" /><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
+                ng-repeat="t in SHUtility.GetEmptyStarCount(Job.match_hours, Job.availability_hours) track by $index" />
+            <small>Availability Coverage - <span ng-show="Job.availability_hours===0">N/A</span>
+                                     <span ng-hide="Job.availability_hours===0">({{Job.match_hours}} / {{Job.availability_hours}})</span>
             </small>
         </div>
     </div>
@@ -48,22 +47,22 @@
         <form ng-submit="OnSubmitApplication()" novalidate>
             <div class="form-group" ng-class="{ 'has-error' : ApplicationError.name }">
                 <label>Name</label>
-                <input class="form-control" type="text" placeholder="" ng-model="Application.name" />
+                <input maxlengt="100" class="form-control" type="text" placeholder="" ng-model="Application.name" />
                 <p ng-show="ApplicationError.name" class="help-block">{{ApplicationError.name}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : ApplicationError.email }">
                 <label>E-Mail</label>
-                <input class="form-control" type="text" placeholder="" ng-model="Application.email" />
+                <input maxlength="320" class="form-control" type="text" placeholder="" ng-model="Application.email" />
                 <p ng-show="ApplicationError.email" class="help-block">{{ApplicationError.email}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : ApplicationError.phone }">
                 <label>Phone #</label>
-                <input class="form-control" type="text" placeholder="" ng-model="Application.phone" />
+                <input maxlength="15" class="form-control" type="text" placeholder="" ng-model="Application.phone" />
                 <p ng-show="ApplicationError.phone" class="help-block">{{ApplicationError.phone}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : ApplicationError.resume }">
                 <label>Resume</label>
-                <textarea class="form-control" ng-model="Application.resume" ></textarea>
+                <textarea maxlength="5000" class="form-control" ng-model="Application.resume" ></textarea>
                 <p ng-show="ApplicationError.resume" class="help-block">{{ApplicationError.resume}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : ApplicationError.availability }">
