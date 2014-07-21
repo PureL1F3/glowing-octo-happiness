@@ -1,13 +1,13 @@
 <div class="text-center">
 <h2 class="sh-color">StreamHire</h2>
-<h4 style="color:#777;">Where employers and jobseekers find each other when the time is right<h4>
+<h4 class="sh-greyfont">Where employers and jobseekers find each other when the time is right<h4>
 </div>
 <div class="panel">
     <div class="panel-body">
         <form novalidate>
             <div class="form-group" ng-class="{ 'has-error' : SearchErrors.location }">
                 <label>Postal Code</label>
-                <button ng-show="LocationAvailable" ng-click="OnGetLocation()" type="button" class="btn btn-info btn-sm pull-right">Use my location</button>
+                <button ng-show="LocationAvailable" ng-disabled="LoadingLocationMessage" ng-click="OnGetLocation()" type="button" class="btn btn-info btn-sm pull-right">Use my location</button>
                 <input type="text" maxlength="10" placeholder="" class="form-control" ng-model="SearchParams.location.name"/>
                 <p ng-show="LoadingLocationMessage" class="help-block">{{LoadingLocationMessage}}</p>
                 <p ng-show="SearchErrors.location" class="help-block">{{SearchErrors.location}}</p>
@@ -33,10 +33,10 @@
                 <input type="text" class="form-control" ng-model="SearchParams.keywords" />
             </div> -->
             <div class="alert alert-danger text-center" role="alert" ng-show="SearchErrors">
-                Please enter your postal code and availability
+                Sorry your search is missing something. Please check and retry.
             </div>
             <div class="text-center">
-                <button type="button" class="btn btn-success" ng-click="OnSearch()">Find Jobs</button>
+                <button type="button" class="btn btn-success" ng-click="OnSearch()" ng-disabled="PerformingSearch">Find Jobs</button>
             </div>
         </form>
         <br><br>

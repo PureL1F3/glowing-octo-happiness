@@ -10,7 +10,7 @@
         <form novalidate >
             <div class="form-group" ng-class="{ 'has-error' : SearchErrors.location }">
                 <label>Postal Code</label>
-                <button ng-show="LocationAvailable" ng-click="OnGetLocation()" type="button" class="btn btn-info btn-sm pull-right">Use my location</button>
+                <button ng-disabled="LoadingLocationMessage" ng-show="LocationAvailable" ng-click="OnGetLocation()" type="button" class="btn btn-info btn-sm pull-right">Use my location</button>
                 <input type="text" maxlength="10" placeholder="" class="form-control" ng-model="SearchParams.location.name" />
                 <p ng-show="LoadingLocationMessage" class="help-block">{{LoadingLocationMessage}}</p>
                 <p ng-show="SearchErrors.location" class="help-block">{{SearchErrors.location}}</p>
@@ -36,16 +36,16 @@
                 <input type="text" class="form-control" ng-model="SearchParams.keywords" />
             </div>
             <div class="alert alert-danger text-center" role="alert" ng-show="SearchErrors">
-                Please enter your postal code and availability
+                Sorry your search is missing something. Please check and retry.
             </div>
             <div class="text-center">
-                <button type="button" class="btn btn-success" ng-click="OnSearch()" ng-hide="Loading">Find Jobs</button>
+                <button type="button" class="btn btn-success" ng-click="OnSearch()" ng-disabled="LoadingLocationMessage" ng-hide="Loading">Find Jobs</button>
                 <img src="icons/loading.gif" ng-show="Loading" />
             </div>
         </form>
     </div>
 </div>
-<div class="panel panel-danger" ng-show="SearchAPI.NoResults()">
+<div class="panel panel-danger" ng-show="CurrentSearchParams && NoResults()">
     <div class="panel-heading">
         <h3 class="panel-title">
         No results
@@ -53,22 +53,16 @@
     </div>
     <div class="panel-body">
         Sorry there were no job matches.
-<!--         <br><br>
-        <em>Search suggestions:</em>
-        <ol>
-            <li>Use broad keywords like retail, office, cashier, secratary, warehouse.</li>
-            <li>Expand your availability if possible.</li>
-        </ol> -->
     </div>
 </div>
-<div class="panel panel-success" ng-hide="SearchAPI.NoResults()">
+<div class="panel panel-success" ng-hide="NoResults()">
     <div class="panel-heading">
         <h3 class="panel-title">
-        Available Jobs <span class="pull-right"><small style="color: #bdc3c7;">{{SearchAPI.SearchResults.start}} to {{SearchAPI.SearchResults.end}} of {{SearchAPI.SearchResults.total}}</small></span>
+        Available Jobs <span class="pull-right"><small style="color: #bdc3c7;">{{SearchResults.start}} to {{SearchResults.end}} of {{SearchResults.total}}</small></span>
         </h3>
     </div>
     <div class="list-group">
-        <a href="#/viewjob/{{result.id}}/search" class="list-group-item" ng-repeat="result in SearchAPI.SearchResults.results">
+        <a href="#/job?i={{result.id}}&a={{SHUtility.ConvertAvailabilityToString(CurrentSearchParams.availability)}}&s=search" class="list-group-item" ng-repeat="result in SearchResults.results">
             <h4 style="margin-top: 5px; margin-bottom: 1px; color: #03AB52; font-weight: normal;"><u>{{result.title}}</u>
                 <span class="label label-danger pull-right" ng-show="result.applied">Applied</span>
                 <span class="label label-warning pull-right" ng-show="!result.applied && result.viewed">Viewed</span>
@@ -96,11 +90,9 @@
             </p>
         </a>
     </div>
-    <div ng-show="SearchAPI.SearchResults.start > 1 || SearchAPI.SearchResults.end < SearchAPI.SearchResults.total">
+    <div ng-show="SearchResults.start > 1 || SearchResults.end < SearchResults.total">
             <br>
-            <a ng-click="OnPrevPage()" ng-show="SearchAPI.SearchResults.start > 1">&nbsp;&nbsp;&nbsp;&larr; Prev</a>
-            <a ng-click="OnNextPage()" ng-show="SearchAPI.SearchResults.end < SearchAPI.SearchResults.total" class="pull-right">Next &rarr;&nbsp;&nbsp;&nbsp;</a>
-            <br><br>
-        </li>
+            <a ng-click="OnPrevPage()" ng-show="SearchResults.start > 1">&nbsp;&nbsp;&nbsp;&larr; Prev</a>
+            <a ng-click="OnNextPage()" ng-show="SearchResults.end < SearchResults.total" class="pull-right">Next &rarr;&nbsp;&nbsp;&nbsp;</a>
     <div>
 </div>
