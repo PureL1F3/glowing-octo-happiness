@@ -17,6 +17,10 @@
             </div>
             <div class="form-group" ng-class="{ 'has-error' : SearchErrors.availability }">
                 <label>Availability</label>
+                <span class="pull-right">
+                    <button ng-click="StaticAPI.FillAvailability(true, SearchParams.availability)" type="button" class="btn btn-sm btn-success">&nbsp;Full&nbsp;</button>
+                    <button ng-click="StaticAPI.FillAvailability(false, SearchParams.availability)" type="button" class="btn btn-sm btn-danger">Clear</button>
+                </span>
                 <p ng-show="SearchErrors.availability" class="help-block">{{SearchErrors.availability}}</p>
                 <table class="table table-bordered table-condensed table-striped text-center">
                     <tr>
@@ -94,5 +98,6 @@
             <br>
             <a ng-click="OnPrevPage()" ng-show="SearchResults.start > 1">&nbsp;&nbsp;&nbsp;&larr; Prev</a>
             <a ng-click="OnNextPage()" ng-show="SearchResults.end < SearchResults.total" class="pull-right">Next &rarr;&nbsp;&nbsp;&nbsp;</a>
+            <br><br>
     <div>
 </div>

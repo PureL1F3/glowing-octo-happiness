@@ -13,7 +13,10 @@
                 <p ng-show="SearchErrors.location" class="help-block">{{SearchErrors.location}}</p>
             </div>
             <div class="form-group" ng-class="{ 'has-error' : SearchErrors.availability }">
-                <label>Availability</label>
+                <span class="pull-right">
+                    <button ng-click="StaticAPI.FillAvailability(true, SearchParams.availability)" type="button" class="btn btn-sm btn-success">&nbsp;Full&nbsp;</button>
+                    <button ng-click="StaticAPI.FillAvailability(false, SearchParams.availability)" type="button" class="btn btn-sm btn-danger">Clear</button>
+                </span>
                 <p ng-show="SearchErrors.availability" class="help-block">{{SearchErrors.availability}}</p>
                 <table class="table table-bordered table-condensed table-striped text-center">
                     <tr>
@@ -36,7 +39,7 @@
                 Sorry your search is missing something. Please check and retry.
             </div>
             <div class="text-center">
-                <button type="button" class="btn btn-success" ng-click="OnSearch()" ng-disabled="PerformingSearch">Find Jobs</button>
+                <button type="button" class="btn btn-success" ng-disabled="LoadingLocationMessage" ng-click="OnSearch()" ng-disabled="PerformingSearch">Find Jobs</button>
             </div>
         </form>
         <br><br>

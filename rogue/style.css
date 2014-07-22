@@ -16,3 +16,7 @@
 .sh-greyfont {
     color: #777;
 }
+
+.avail-highlight {
+    background-color: #ADFF66  !important; 
+}

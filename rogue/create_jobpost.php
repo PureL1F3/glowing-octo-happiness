@@ -6,7 +6,7 @@ include_once('roguedb.php');
 
 if(!isset($_COOKIE['token']))
 {
-    return finish(false, "You need to be <a href='#/registration/employer/post'>logged in</a> to post a job.");
+    finish(false, NOT_AUTH);
 }
 $token = $_COOKIE['token'];
 
@@ -18,17 +18,17 @@ $config['database']['streamhire']['db']);
 $result = $db->connect();
 if(!$result['ok'])
 {
-    finish(false, $config['canned_msg']['technical_difficulty']);
+    finish(false, TECH_ISSUE);
 }
 
 $result = $db->user_bytoken($token);
 if(!$result['ok'])
 {
-    finish(false, $config['canned_msg']['technical_difficulty']);
+    finish(false, TECH_ISSUE);
 }
 else if(is_null($result['result']))
 {
-    finish(false, "You need to be <a href='#/registration/employer/post'>logged in</a> to post a job.");
+    finish(false, NOT_AUTH);
 }
 $userid = $result['result']['id'];
 
@@ -147,7 +147,7 @@ else
     $result = $db->jobfunction_isvalid($job_function);
     if(!$result['ok'])
     {
-        finish(false, $config['canned_msg']['technical_difficulty']);
+        finish(false, TECH_ISSUE);
     }
     else if(!$result['result'])
     {
@@ -165,7 +165,7 @@ else
     $result = $db->jobtype_isvalid($job_type);
     if(!$result['ok'])
     {
-        finish(false, $config['canned_msg']['technical_difficulty']);
+        finish(false, TECH_ISSUE);
     }
     else if(!$result['result'])
     {
@@ -242,32 +242,69 @@ else
     }
 }
 
+$jobid = null;
+if(isset($jobpost['id']) and is_int($jobpost['id']) and intval($jobpost['id']) > 0)
+{
+    $jobid = intval($jobpost['id']);
+    $result = $db->get_employer_jobpost($userid, $jobid);
+    if(!$result['ok']) {
+        finish(false, TECH_ISSUE);
+    }
+    if(!$result['result']) {
+        finish(false, INVALID_EDITPOST_INVALIDJOB);
+    }
+    $job = $result['result'];
+    if($job['expired'])
+    {
+        finish(false, INVALID_EDITPOST_EXPIRED);
+    }
+}
+
 if(count($errors) > 0) 
 {
     $result = array('errors' => $errors);
     finish(true, $result);
 }
 
-$result = $db->create_jobpost($userid, $job_location_name, $job_location_lat, $job_location_lon, $job_employer, $job_title, $job_description, $job_function, $job_type, $job_externalurl, $total_hours);
-if(!$result['ok'])
-{
-    finish(false, $config['canned_msg']['technical_difficulty']);
+$result = null;
+if($jobid) {
+    $result = $db->update_jobpost($userid, $jobid, $job_location_name, $job_location_lat, $job_location_lon, $job_employer, $job_title, $job_description, $job_function, $job_type, $job_externalurl, $total_hours);
+    if(!$result['ok'])
+    {
+        finish(false, TECH_ISSUE);
+    }
+    else
+    {
+        $result = $db->create_jobpost_availability($jobid, $job_availability, $AvailabilityDays_count, $AvailabilityCategories_count);
+        if(!$result['ok'])
+        {
+            finish(false, TECH_ISSUE);
+        }
+    }
 }
 else
 {
-    $jobid = $result['result']['id'];
-    $result = $db->create_jobpost_availability($jobid, $job_availability, $AvailabilityDays_count, $AvailabilityCategories_count);
+    $result = $db->create_jobpost($userid, $job_location_name, $job_location_lat, $job_location_lon, $job_employer, $job_title, $job_description, $job_function, $job_type, $job_externalurl, $total_hours);
     if(!$result['ok'])
     {
-        finish(false, $config['canned_msg']['technical_difficulty']);
+        finish(false, TECH_ISSUE);
     }
-    $result = $db->make_jobpost_golive($jobid);
-    if(!$result['ok'])
+    else
     {
-        finish(false, $config['canned_msg']['technical_difficulty']);
-    }
+        $jobid = $result['result']['id'];
+        $result = $db->create_jobpost_availability($jobid, $job_availability, $AvailabilityDays_count, $AvailabilityCategories_count);
+        if(!$result['ok'])
+        {
+            finish(false, TECH_ISSUE);
+        }
+        $result = $db->make_jobpost_golive($jobid);
+        if(!$result['ok'])
+        {
+            finish(false, TECH_ISSUE);
+        }
+    } 
 }
 
-finish(true, $result);
+finish(true, true);
 
 ?>

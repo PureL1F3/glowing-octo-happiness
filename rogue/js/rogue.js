@@ -9,16 +9,31 @@
             controller : 'JobSearchHomeCtrl'
         }).when('/account', {
             templateUrl : 'partials/account-picker.html',
-            controller : 'AccountPickerCtrl'
-        }).when('/employer/dashboard', {
+            controller : 'AccountPickerCtrl',
+            resolve : {
+               'AccountData' : function(AccountAPI) {
+                    return AccountAPI.promise;
+                }
+            }
+        }).when('/employer/dash', {
             templateUrl : 'partials/employer-posted.html',
-            controller : 'EmployerDashboardCtrl'
+            controller : 'EmployerDashboardCtrl',
+            resolve : {
+               'AccountData' : function(AccountAPI) {
+                    return AccountAPI.promise;
+                }
+            }
         }).when('/employer/job/:jobid/candidates/:type/:page', {
             templateUrl : 'partials/jobpost-candidates.html',
             controller : 'EmployerJobCandidatesCtrl'
-        }).when('/jobseeker/dashboard', {
+        }).when('/jobseeker/dash', {
             templateUrl : 'partials/jobseeker-dashboard.html',
-            controller : 'JobSeekerDashboardCtrl'
+            controller : 'JobSeekerDashboardCtrl',
+            resolve : {
+               'AccountData' : function(AccountAPI) {
+                    return AccountAPI.promise;
+                }
+            }
         }).when('/jobs', {
             templateUrl : 'partials/jobsearch-results.html',
             controller : 'JobSearchResultsCtrl',
@@ -30,31 +45,53 @@
             }
         }).when('/employer/job', {
             templateUrl : 'partials/jobpost-create.html',
-            controller : 'JobPostCreateCtrl'
+            controller : 'JobPostCreateCtrl',
+            resolve : {
+               'AccountData' : function(AccountAPI) {
+                    return AccountAPI.promise
+                },
+                'StaticData' : function(StaticAPI) {
+                    return StaticAPI.promise;
+                }
+            }
         })
         .when('/job', {
             templateUrl : 'partials/jobpost-view.html',
-            controller : 'JobPostViewCtrl'
-        }).when('/registration/employer', {
+            controller : 'JobPostViewCtrl',
+            resolve : {
+               'AccountData' : function(AccountAPI) {
+                    return AccountAPI.promise;
+                }
+            }
+        }).when('/employer/registration', {
             templateUrl : 'partials/registration-employer.html',
-            controller : 'EmployerRegistrationController'
-        }).when('/registration/jobseeker', {
+            controller : 'EmployerRegistrationController',
+            resolve : {
+               'AccountData' : function(AccountAPI) {
+                    return AccountAPI.promise;
+                },
+                'StaticData' : function(StaticAPI) {
+                    return StaticAPI.promise;
+                }
+            }
+        }).when('/jobseeker/registration', {
             templateUrl : 'partials/registration-employee.html',
-            controller : 'JobSeekerRegistrationController'})
-        // }).when('/yesda', {
-        //     templateUrl : 'partials/yesda.html',
-        //     controller : 'YesdaCtrl',
-        //     resolve : {
-        //         'AccountData' : function(AccountAPI) {
-        //             return AccountAPI.promise;
-        //         }
-        //     }
-        // })
+            controller : 'JobSeekerRegistrationController',
+            resolve : {
+               'AccountData' : function(AccountAPI) {
+                    return AccountAPI.promise;
+                },
+                'StaticData' : function(StaticAPI) {
+                    return StaticAPI.promise;
+                }
+            }
+        })
         .otherwise({
             redirectTo : '/'
         });
     }]);
-    app.controller('NavCtrl', ['$scope', '$location', 'AccountAPI', function($scope, $location, AccountAPI){
+    app.controller('NavCtrl', ['$scope', '$location', 'AccountAPI', 'MagicMikeService', 
+        function($scope, $location, AccountAPI, MagicMikeService){
         console.log('loading nav');
         $scope.AccountAPI = AccountAPI;
         $scope.CurrentNav = '';
@@ -90,45 +127,42 @@
             console.log(AccountAPI.Account);
 
             if(!AccountAPI.Account) {
-                $location.path('/account');
+                MagicMikeService.RouteToAccountPicker();
             }
-            else if(AccountAPI.Account.employer) {
-                $location.path('/employer/dashboard');
+            else if(AccountAPI.IsEmployer()) {
+                MagicMikeService.RouteToEmployerDashboard();
             }
             else if(AccountAPI.Account.jobseeker) {
-                $location.path('/jobseeker/dashboard');
+                MagicMikeService.RouteToJobseekerDashboard();
             }
         };
         
         $scope.OnLogout = function() {
             AccountAPI.Logout();
-            $location.path('/');
+            MagicMikeService.RouteToHome();
         };
         AccountAPI.registerObserverCallback($scope.UpdateNav);
     }])
 
-//     app.controller('AccountPickerCtrl', ['$scope', '$location', 'AccountAPI', 'StreamHireAPI', function($scope, $location, AccountAPI, StreamHireAPI){
-//         $scope.OnJobSeekerAccount = function()
-//         {
-//             $location.path('/registration/jobseeker');
-//         };
+    app.controller('AccountPickerCtrl', ['$scope', '$location', 'MagicMikeService', 'AccountAPI', function($scope, $location, MagicMikeService, AccountAPI){
+        $scope.OnJobSeekerAccount = function()
+        {
+            MagicMikeService.RouteToJobseekerRegistration();
+        };
 
-//         $scope.OnEmployerAccount = function() {
-//             $location.path('/registration/employer');
-//         };
+        $scope.OnEmployerAccount = function() {
+            MagicMikeService.RouteToEmployerRegistration();
+        };
 
-//         AccountAPI.deffered.promise.then(function() {
-//             if(AccountAPI.Account)
-//             {
-//                 if(AccountAPI.Account.employer){
-//                     StreamHireAPI.BumpHome('employer');
-
-//                 } else if(AccountAPI.Account.jobseeker) {
-//                     StreamHireAPI.BumpHome('jobseeker');
-//                 }
-//             }
-//         });
-//     }]);
+        if(AccountAPI.IsLoggedIn()) {
+            if(AccountAPI.IsEmployer()) {
+                MagicMikeService.RouteToEmployerDashboard();
+            }
+            else {
+                MagicMikeService.RouteToJobseekerDashboard();
+            }
+        }
+    }]);
 
 //     app.controller('EmployerJobCandidatesCtrl', ['$scope', '$http', '$location', '$routeParams', '$anchorScroll', '$window', 'StaticAPI' , 
 //         function($scope, $http, $location, $routeParams, $anchorScroll, $window, StaticAPI){
@@ -1349,7 +1383,6 @@ app.controller('JobSearchHomeCtrl',
     $scope.DoSearch = function() {
         MagicMikeService.RouteToJobSearchResults($scope.SearchParams.availability, $scope.SearchParams.location.name, $scope.SearchParams.location.lat, $scope.SearchParams.location.lon, $scope.SearchParams.page);
     };
-
     $scope.OnPostJob = function() {
         MagicMikeService.RouteToEmployerJob();
     };
@@ -1358,7 +1391,7 @@ app.controller('JobSearchHomeCtrl',
         var deferred = $q.defer();
 
         var location = SHUtility.GetPostalCodeFromLocation($scope.SearchParams.location.name);
-        var location_len = $scope.SearchParams.location.name.length;
+        var location_len = location.length;
 
         if(location_len < 1) {
             deferred.reject();
@@ -1494,7 +1527,9 @@ app.controller('JobSearchResultsCtrl',
             not_changed = true;
         }
         else {
-            if($scope.SearchParams.location.name != $scope.CurrentSearchParams.location.name) {
+            if($scope.SearchParams.location.name != $scope.CurrentSearchParams.location.name ||
+                $scope.SearchParams.location.lat != $scope.CurrentSearchParams.location.lat ||
+                $scope.SearchParams.location.lon != $scope.CurrentSearchParams.location.lon) {
                 $scope.SearchParams.location.lat = null;
                 $scope.SearchParams.location.lon = null;
             }
@@ -1508,7 +1543,7 @@ app.controller('JobSearchResultsCtrl',
         var deferred = $q.defer();
 
         var location = SHUtility.GetPostalCodeFromLocation($scope.SearchParams.location.name);
-        var location_len = $scope.SearchParams.location.name.length;
+        var location_len = location.length;
 
         if(location_len < 1) {
             deferred.reject();
@@ -1670,18 +1705,582 @@ app.controller('JobSearchResultsCtrl',
     $scope.LoadingLocationMessage = null;
 }]);
 
+app.controller('JobPostViewCtrl', 
+    ['SHUtility' , 'StaticAPI', '$scope', '$location', '$window', '$routeParams', 'AccountAPI', 'MagicMikeAPI', 'MagicMikeService',
+    function(SHUtility, StaticAPI, $scope, $location, $window, $routeParams, AccountAPI, MagicMikeAPI, MagicMikeService){
+
+    $scope.Loading = true;
+    $scope.LoadingError = false;
+
+    $scope.SHUtility = SHUtility;
+    $scope.StaticAPI = StaticAPI;
+
+    $scope.Availability = null;
+    $scope.JobId = null;
+    $scope.Job = null;
+
+    $scope.Application = StaticAPI.GetEmptyApplication();
+    $scope.ApplicationError = null;
+    $scope.ApplicationErrorMessage = null;
+    $scope.ApplicationSubmitting = false;
+    $scope.PermitApplication = true;
+    $scope.ShowApplication = false;
+    $scope.ShowApplicationSuccess = false;
+
+    $scope.InitApplication = function() {
+        if(AccountAPI.IsJobseeker()) {
+            $scope.Application.jobid = $scope.Job.id;
+            $scope.Application.name = AccountAPI.Account.account.name;
+            $scope.Application.email = AccountAPI.Account.account.email;
+            $scope.Application.phone = AccountAPI.Account.account.phone;
+            $scope.Application.resume = AccountAPI.Account.jobseeker.resume;
+            $scope.Application.availability = $scope.Availability;
+        }
+        else if(AccountAPI.IsEmployer()) {
+            $scope.PermitApplication = false;
+        }
+    };
+
+    $scope.InitJob = function() {
+        var urlparams = $location.search();
+
+        var valid_job = false;
+        var jobid = null;
+        if(urlparams.i) {
+            jobid = parseInt(urlparams.i);
+            if(!isNaN(jobid)) {
+                valid_job = true;
+            }
+        }
+        if(!valid_job) {
+            return false;
+        }
+        $scope.JobId = jobid;
+
+        var valid_availability = false;
+        var availability = null;
+        if(urlparams.a
+           && (typeof urlparams.a) === 'string') {
+            availability = SHUtility.ConvertStringToAvailability(urlparams.a);
+            valid_availability = (availability != null);
+        }
+        if(!valid_availability) {
+            if(AccountAPI.IsJobseeker()) {
+                availability = angular.copy(AccountAPI.Account.jobseeker.availability);
+            }
+            else {
+                availability = StaticAPI.GetFullAvailability();
+            }
+        }
+        $scope.Availability = availability;
+
+        var valid_source = true;
+        var source = null;
+        if(urlparams.s) {
+            if(urlparams.s === MagicMikeAPI.JobSourceSearch 
+                || urlparams.s === MagicMikeAPI.JobSourceInvite 
+                || urlparams.s === MagicMikeAPI.JobSourcePost 
+                || urlparams.s === MagicMikeAPI.JobSourceApplication) {
+                source = urlparams.s;
+            }
+            else {
+                valid_source = false;
+            }
+        }
+
+        return true;
+    };
+    $scope.LoadJob = function () {
+        $scope.Loading = true;
+        MagicMikeService.LoadJobForUserView($scope.JobId, $scope.Availability).then(
+            function(result) {
+                $scope.Job = result;
+                $scope.Loading = false;
+                $scope.InitApplication()
+            },
+            function(error) {
+                $scope.LoadError = true;
+                $scope.Loading = false;
+            });
+    };
+    $scope.OnApply = function() {
+        if($scope.Job.externalurl)
+        {
+            $window.open($scope.Job.externalurl);
+        }
+        else
+        {
+            $scope.ShowApplication = true;
+        }
+    };
+
+    $scope.OnSubmitApplication = function() {
+        $scope.ApplicationError = null;
+        $scope.ApplicationErrorMessage = null;
+        $scope.ApplicationSubmitting = true;
+        MagicMikeService.SubmitJobApplication($scope.Application).then(
+            function() {
+                $scope.Job.applied = true;
+                $scope.ShowApplication = false;
+                $scope.ShowApplicationSuccess = true;
+                $scope.ApplicationSubmitting = false;
+            },
+            function(result) {
+                $scope.ApplicationError = result.errors;
+                $scope.ApplicationErrorMessage = result.errmsg;
+                $scope.ApplicationSubmitting = false;
+            });          
+    };
+
+    $scope.OnClickBack = function() {
+        $window.history.back();
+    };
+
+    if($scope.InitJob()) {
+        $scope.LoadJob();
+    }
+    else
+    {
+        $scope.LoadError = true;
+        $scope.Loading = false;
+    }
+}]);
+
+app.controller('EmployerRegistrationController', 
+    ['$scope', 'StaticAPI', 'AccountAPI', 'MagicMikeService', 'MagicMikeAPI', 
+    function($scope, StaticAPI, AccountAPI, MagicMikeService, MagicMikeAPI) {
+    
+    $scope.OnForgotPassword = function() {
+        $scope.LoginError  = null;
+        $scope.LoginErrorMessage = null;
+        $scope.ForgotPasswordSubmitting = true;
+        AccountAPI.ForgotPassword().then(
+            function() {
+                $scope.HideForgotPasswordButton = true;
+                $scope.ForgotPasswordSubmitting = false;
+                $scope.ForgotPasswordMessage = 'Your password reset link has been sent';
+            },
+            function(error) {
+                $scope.ForgotPasswordSubmitting = false;
+                $scope.ForgotPasswordMessage = msg;
+            })
+    };
+
+    $scope.OnSubmitRegistration = function() {
+        $scope.RegistrationError = null;
+        $scope.RegistrationErrorMessage = null; 
+        $scope.RegistrationSubmitting = true;
+        AccountAPI.Register(MagicMikeAPI.Employer, $scope.Registration).then(
+            function() {
+                $scope.RegistrationSubmitting = false;
+                MagicMikeService.RouteToEmployerDashboard();
+            },
+            function(result) {
+                $scope.RegistrationError  = result.errors;
+                $scope.RegistrationErrorMessage = result.msg;
+                $scope.RegistrationSubmitting = false;                
+            });
+    };
+
+    $scope.OnSubmitLogin = function() {
+        $scope.LoginError  = null;
+        $scope.LoginErrorMessage = null;
+        $scope.LoginSubmitting = true;
+        AccountAPI.Login(MagicMikeAPI.Employer, $scope.Login).then(
+            function() {
+                $scope.LoginSubmitting = false;
+                MagicMikeService.RouteToEmployerDashboard();
+            },
+            function(result) {
+                $scope.LoginError  = result.errors;
+                $scope.LoginErrorMessage = result.msg;
+                $scope.LoginSubmitting = false;             
+            });
+    };
+
+    // should we be showing this view
+    if(AccountAPI.IsLoggedIn()) {
+        if(AccountAPI.IsEmployer()){
+            MagicMikeService.RouteToEmployerDashboard();
+        }
+        else {
+            MagicMikeService.RouteToJobseekerDashboard();
+        }
+    }
+
+    //setup
+    $scope.StaticAPI = StaticAPI;
+
+    //forgot password UI
+    $scope.HideForgotPasswordButton = false;
+    $scope.ForgotPasswordSubmitting = false;
+    $scope.ForgotPasswordMessage = null;
+
+    //registration UI
+    $scope.RegistrationError = null;
+    $scope.RegistrationErrorMessage = null; 
+    $scope.RegistrationSubmitting = false;
+    //registration DATA
+    $scope.Registration = StaticAPI.GetEmptyEmployerRegistration();
+    //login UI
+    $scope.LoginError  = null;
+    $scope.LoginErrorMessage = null;
+    $scope.LoginSubmitting = false;
+    //login DATA
+    $scope.Login = StaticAPI.GetEmptyEmployerLogin();
+}]);
+
+app.controller('JobSeekerRegistrationController', 
+    ['$scope', 'StaticAPI', 'AccountAPI', 'LocationAPI', 'MagicMikeService', 'MagicMikeAPI', 
+    function($scope, StaticAPI, AccountAPI, LocationAPI, MagicMikeService, MagicMikeAPI) {   
+    $scope.OnForgotPassword = function() {
+        $scope.LoginError  = null;
+        $scope.LoginErrorMessage = null;
+        $scope.ForgotPasswordSubmitting = true;
+        AccountAPI.ForgotPassword().then(
+            function() {
+                $scope.HideForgotPasswordButton = true;
+                $scope.ForgotPasswordSubmitting = false;
+                $scope.ForgotPasswordMessage = 'Your password reset link has been sent';
+            },
+            function(error) {
+                $scope.ForgotPasswordSubmitting = false;
+                $scope.ForgotPasswordMessage = msg;
+            })
+    };
+    $scope.OnSubmitRegistration = function() {
+        $scope.RegistrationError = null;
+        $scope.RegistrationErrorMessage = null; 
+        $scope.RegistrationSubmitting = true;
+        AccountAPI.Register(MagicMikeAPI.Jobseeker, $scope.Registration).then(
+            function() {
+                $scope.RegistrationSubmitting = false;
+                MagicMikeService.RouteToJobseekerDashboard();
+            },
+            function(result) {
+                $scope.RegistrationError  = result.errors;
+                $scope.RegistrationErrorMessage = result.msg;
+                $scope.RegistrationSubmitting = false;                
+            });
+    };
+    $scope.OnSubmitLogin = function() {
+        $scope.LoginError  = null;
+        $scope.LoginErrorMessage = null;
+        $scope.LoginSubmitting = true;
+        AccountAPI.Login(MagicMikeAPI.Jobseeker, $scope.Login).then(
+            function() {
+                $scope.LoginSubmitting = false;
+                MagicMikeService.RouteToJobseekerDashboard();
+            },
+            function(result) {
+                $scope.LoginError = result.errors;
+                $scope.LoginErrorMessage = result.msg;
+                $scope.LoginSubmitting = false;             
+            });
+    };
+    $scope.DisableLocation = function() {
+        $scope.LoadingLocationMessage = 'Sorry location is unavailable - please enter a postal code.';
+        $scope.GettingLocation = false;
+        $scope.LocationAvailable = false;
+    };
+    $scope.OnGetLocation = function() {
+        $scope.GettingLocation = true;
+        $scope.LoadingLocationMessage = 'Loading location...';
+
+        LocationAPI.GetGeolocation().then(
+            function(result) {
+                $scope.GettingLocation = false;
+                $scope.LoadingLocationMessage = null;
+                $scope.Registration.location.name = 'Current';
+                $scope.Registration.location.lat = result.lat;
+                $scope.Registration.location.lon = result.lon;
+            },
+            function(error) {
+                $scope.GettingLocation = false;
+                $scope.DisableLocation();
+            });
+    };
+
+    // should we be showing this view
+    if(AccountAPI.IsLoggedIn()) {
+        if(AccountAPI.IsEmployer){
+            MagicMikeService.RouteToEmployerDashboard();
+        }
+        else {
+            MagicMikeService.RouteToJobseekerDashboard();
+        }
+    }
+
+
+    $scope.StaticAPI = StaticAPI;
+    //forgot password UI
+    $scope.HideForgotPasswordButton = false;
+    $scope.ForgotPasswordSubmitting = false;
+    $scope.ForgotPasswordMessage = null;
+
+    //registration UI
+    $scope.RegistrationError = null;
+    $scope.RegistrationErrorMessage = null; 
+    $scope.RegistrationSubmitting = false;
+    //registration DATA
+    $scope.Registration = StaticAPI.GetEmptyJobseekerRegistration();
+
+    //login UI
+    $scope.LoginError  = null;
+    $scope.LoginErrorMessage = null;
+    $scope.LoginSubmitting = false;
+    //login DATA
+    $scope.Login = StaticAPI.GetEmptyJobseekerLogin();
+
+    $scope.LocationAvailable = true;
+    $scope.GettingLocation = false;
+    $scope.LoadingLocationMessage = null;
+}]);
+
+app.controller('JobPostCreateCtrl', 
+    ['StaticAPI', '$scope', '$location', '$routeParams', 'AccountAPI', 'LocationAPI', 'MagicMikeService', '$q', 'SHUtility',
+    function(StaticAPI, $scope, $location, $routeParams, AccountAPI, LocationAPI, MagicMikeService, $q, SHUtility) {    
+
+    $scope.InitJob = function() {
+        var urlparams = $location.search();
+        var valid_jobid = false;
+        var jobid  = null;
+        if(urlparams.i) {
+            jobid = parseInt(urlparams.i);
+            if(!isNaN(jobid)) {
+                console.log('should load jobid');
+                $scope.Jobid = jobid;
+                valid_jobid = true;
+            }
+        }
+        if(!valid_jobid) {
+            console.log('empty jobpostg');
+            $scope.Jobpost = StaticAPI.GetEmptyJobpost();
+            $scope.Jobpost.employer = AccountAPI.Account.employer.name;
+        }
+        return valid_jobid;
+    };
+    $scope.LoadJob = function() {
+        MagicMikeService.LoadJobPostForEdit($scope.Jobid).then(
+            function(result) {
+                $scope.Jobpost = result;
+                $scope.CurrentJobLocation = angular.copy($scope.Jobpost.location);
+                $scope.Loading = false;
+            },
+            function(errmsg) {
+                $scope.LoadingError = "Sorry that job is not available for edit.  Please try again later.";
+            });
+    };
+
+    $scope.ShouldLoadPostalCode = function() {
+        var not_changed = false;
+        if($scope.CurrentJobLocation === null) {
+            not_changed = true;
+        }
+        else {
+            if($scope.Jobpost.location.name != $scope.CurrentJobLocation.name ||
+                $scope.Jobpost.location.lat != $scope.CurrentJobLocation.lat ||
+                $scope.Jobpost.location.lon != $scope.CurrentJobLocation.lon) {
+                $scope.Jobpost.location.lat = null;
+                $scope.Jobpost.location.lon = null;
+            }
+            not_changed = true;
+
+        }
+        return not_changed;
+    };
+
+    $scope.TryLoadLocationForPostalCode = function() {
+        var deferred = $q.defer();
+
+        var location = SHUtility.GetPostalCodeFromLocation($scope.Jobpost.location.name);
+        var location_len = location.length;
+        if(location_len < 1) {
+            deferred.resolve();
+        }
+        else if($scope.ShouldLoadPostalCode()) {
+            LocationAPI.GetLocationForPostalCode(location).then(
+                function(result) {
+                    $scope.Jobpost.location.lat = result.lat;
+                    $scope.Jobpost.location.lon = result.lon;
+                    deferred.resolve();
+                },
+                null);
+        }
+        else
+        {
+            deferred.resolve();
+        }
+        return deferred.promise;
+    };
+
+
+    $scope.SubmitJobPost = function() {
+        $scope.FormSubmitting = true;
+        $scope.FormErrorMessage = null;
+        $scope.FormError = null;
+        $scope.TryLoadLocationForPostalCode().then(
+            function() {
+                MagicMikeService.UploadJobPost($scope.Jobpost).then(
+                    function() {
+                        $scope.FormSubmitting = false;
+                        MagicMikeService.RouteToEmployerDashboard();
+                    },
+                    function(result) {
+                        $scope.FormSubmitting = false;
+                        $scope.FormErrorMessage = result.errmsg,
+                        $scope.FormError = result.errors;
+                    });
+            }, null);
+
+    };
+    $scope.DisableLocation = function() {
+        $scope.LoadingLocationMessage = 'Sorry location is unavailable - please enter a postal code.';
+        $scope.GettingLocation = false;
+        $scope.LocationAvailable = false;
+    };
+    $scope.OnGetLocation = function() {
+        $scope.GettingLocation = true;
+        $scope.LoadingLocationMessage = 'Loading location...';
+
+        LocationAPI.GetGeolocation().then(
+            function(result) {
+                $scope.GettingLocation = false;
+                $scope.LoadingLocationMessage = null;
+                $scope.Jobpost.location.name = 'Current';
+                $scope.Jobpost.location.lat = result.lat;
+                $scope.Jobpost.location.lon = result.lon;
+            },
+            function(error) {
+                $scope.GettingLocation = false;
+                $scope.DisableLocation();
+            });
+    };
+
+    if(!AccountAPI.IsEmployer()) {
+        MagicMikeService.RouteToEmployerRegistration(true);
+    }
+
+    $scope.Loading = true;
+    $scope.LoadingError = null;
+
+    $scope.Jobid = null;
+    $scope.Jobpost = null; 
+    $scope.CurrentJobLocation = null;
+
+    if($scope.InitJob()) {
+        $scope.LoadJob();
+    }
+    else
+    {
+        $scope.Loading = false;
+    }
+
+    //initialization
+    $scope.StaticAPI = StaticAPI;
+    $scope.FormError = null;
+    $scope.FormErrorMessage = null;
+    $scope.FormSubmitting = false;
+
+    $scope.LocationAvailable = true;
+    $scope.GettingLocation = false;
+    $scope.LoadingLocationMessage = null;
+}]);
+
+
+app.controller('JobSeekerDashboardCtrl', 
+    ['SHUtility', '$scope', '$location', 'MagicMikeService', 'MagicMikeAPI', 
+    function(SHUtility, $scope, $location, MagicMikeService, MagicMikeAPI){
+        
+    $scope.OnFindJobs = function() {
+        MagicMikeService.RouteToJobSearch();
+    };
+
+    $scope.OnShowJobs = function(type) {
+        $scope.Load(1, type);
+    };
+
+    $scope.IsJobs = function(type) {
+        return $scope.JobTypes === type;
+    };
+
+    $scope.Load = function(page, type) {
+        MagicMikeService.LoadJobSeekerDashboard(page, type).then(
+            function(result) {
+                $scope.Page = page;
+                $scope.JobTypes = type;
+                $scope.MyJobs = result;
+                $scope.Loading = false;
+            },
+            function(error) {
+                $scope.LoadingError = error;
+                $scope.Loading = false;
+            });
+    }; 
+
+    $scope.OnPrevPage = function() {
+     $scope.Load($scope.Page - 1, $scope.JobTypes);
+    };
+
+    $scope.OnNextPage = function() {
+     $scope.Load($scope.Page + 1, $scope.JobTypes);
+    };
+
+    $scope.Init = function() {
+        var urlparams = $location.search();
+
+        var page = 1;
+        if(urlparams.p) {
+            var p = parseInt(urlparams.p);
+            if(!isNaN(p) && p > 0) {
+                page = p;
+            }
+        }
+
+        var s = null;
+        if(urlparams.s && (typeof urlparams.s) === 'string') {
+            if(urlparams.s ===  MagicMikeAPI.JobSourceInvite || urlparams.s ===  MagicMikeAPI.JobSourceApplication) {
+                s = urlparams.s;
+            }
+        };
+
+        $scope.Page = page;
+        $scope.JobTypes = s ? s : MagicMikeAPI.JobSourceApplication;
+    };
+
+    $scope.SHUtility = SHUtility;
+    $scope.MagicMikeAPI = MagicMikeAPI;
+
+    $scope.Loading = true;
+    $scope.LoadingError = null;
+
+    $scope.Page = null;
+    $scope.JobTypes = null;
+    $scope.MyJobs = null; 
+
+    $scope.Init();
+    $scope.Load($scope.Page, $scope.JobTypes);
+
+}]);
+
 //-------------------------------------------------
 //services-----------------------------------------
 //-------------------------------------------------
-app.service('AccountAPI', ['$http', '$cookieStore', '$q', 'MagicMikeAPI', function($http, $cookieStore, $q, MagicMikeAPI) { 
+app.service('AccountAPI', ['$http', '$cookieStore', '$q', 'MagicMikeAPI', 'MagicMikeService', function($http, $cookieStore, $q, MagicMikeAPI, MagicMikeService) { 
     var that = this;
-    this.observerCallbacks = [];  
+    this.observerCallbacks = [];
+
+    this.IsLoggedIn = function() {
+        return this.Account;
+    }
+
+
     this.IsEmployer = function() {
-        return this.Account && this.Account.employer;
+        return this.IsLoggedIn() && this.Account.employer;
     };
     
     this.IsJobseeker = function() {
-        return this.Account && this.Account.jobseeker;
+        return this.IsLoggedIn() && this.Account.jobseeker;
     };
 
     this.registerObserverCallback = function(callback){
@@ -1695,12 +2294,13 @@ app.service('AccountAPI', ['$http', '$cookieStore', '$q', 'MagicMikeAPI', functi
     };
 
     this.UpdateAccount = function(account) {
+        this.Account = account;
         this.notifyObservers();
     };
     this.Logout = function() {
         document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
         this.UpdateAccount(null);
-        $location.path(MagicMikeAPI.LocationHome);
+        MagicMikeService.RouteToHome();
     };
     this.Register = function(type, registration) {
         //success - empty result
@@ -1820,7 +2420,7 @@ app.service('LocationAPI',
         var code = SHUtility.GetPostalCodeFromLocation(loc);
         var deferred = $q.defer();
 
-        var onSuccess = function(result){ 
+        var onSuccess = function(result){
             deferred.resolve(result);
         };
         var onError = function(){
@@ -1902,6 +2502,96 @@ app.service('StaticAPI',
         {id : true, name : "Apply via External Application"}
     ];
 
+    this.Valid = false;
+
+    this.GetEmptyJobseekerRegistration = function() {
+        return {
+            location : {
+                name: '',
+                lat: 0,
+                lon: 0
+            },
+            account : {
+                name : '',
+                phone : '',
+                email : '',
+                password : '',
+            },
+            distance : 0,
+            resume : '',
+            availability : this.GetFullAvailability(),
+            jobtypes : [],
+            jobfunctions : []
+        };
+    };
+
+    this.GetEmptyJobpost = function() {
+        return {
+            id : null,
+            employer : '',
+            title : '',
+            description : '',
+            location : {
+                name: '',
+                lat: null,
+                lon: null
+            },
+            jobtype : 0,
+            jobfunction : 0,            
+            externalurl : '',
+            applicationtype : false,
+            availability : this.GetFullAvailability()
+
+        };
+    };
+
+    this.GetEmptyJobseekerLogin = function() {
+        return {
+            email : '',
+            password : ''
+        };
+    };
+
+    this.GetEmptyEmployerRegistration = function() {
+        return {
+            account : {
+                name : '',
+                phone : '',
+                email : '',
+                password : ''
+            },
+            name : '',
+            website : '',
+            description : ''
+        };
+    }
+        
+    this.GetEmptyEmployerLogin = function() {
+        return {
+            email : '',
+            password : ''
+        };
+    };
+
+    this.FillAvailability = function(value, availability) {
+        for(var i = 0; i < this.AvailabilityDays.length; i++) {
+            for(var j = 0; j < this.AvailabilityCategories.length; j++) {
+                availability[i][j] = value;
+            }
+        }
+    }
+
+    this.GetEmptyApplication = function() {
+        return {
+            jobid : null,
+            name : '',
+            email : '',
+            phone : '',
+            resume : '',
+            availability :  this.GetFullAvailability()
+        };
+    };
+
     this.GetEmptySearchResults = function() {
         return {
             total : 0,
@@ -1909,7 +2599,7 @@ app.service('StaticAPI',
             end : 0,
             results : []
         }
-    }
+    };
 
     this.GetEmptySearchParams = function() {
         return {
@@ -1965,6 +2655,7 @@ app.service('StaticAPI',
             else {
                 that.JobFunctions = data.result.jobfunctions;
                 that.JobTypes = data.result.jobtypes; 
+                this.Valid = true;
                 that.deferred.resolve();               
             }
         });
@@ -2101,6 +2792,15 @@ app.constant('MagicMikeAPI', {
     //.account registration submission
     RegisterEmployerAccount : '/rogue/register_employer.php',
     RegisterJobseekerAccount : '/rogue/register_jobseeker.php',
+    //.view job post
+    JobView : '/rogue/get_jobpost.php',
+    //. submit job application
+    JobApplication: '/rogue/submit_jobapplication.php',
+    GetJobPostForEdit : '/rogue/get_jobpostforedit.php',
+    UploadJobPost : '/rogue/create_jobpost.php',
+    //.jobseeker dashboard
+    JobseekerJobs : '/rogue/get_seekerjobs.php',
+    
     //-----------------------_DEFINITIONS_---------------------------
     //---------------------------------------------------------------
     Employer : 'employer',
@@ -2110,6 +2810,7 @@ app.constant('MagicMikeAPI', {
     JobSourceSearch : 's',
     JobSourceInvite : 'i',
     JobSourcePost : 'p',
+    JobSourceApplication : 'a',
     //-----------------------_ROUTING_-------------------------------
     //---------------------------------------------------------------
     LocationHome :                  '/',
@@ -2123,7 +2824,7 @@ app.constant('MagicMikeAPI', {
     LocationEmployerProfile :       '/employer/profile',
     LocationEmployerJob :           '/employer/job',
     LocationEmployerJobCandidates : '/employer/candidates',
-    LocationEmployerJobCandidates : '/employer/candidates',
+    AccountPicker :                 '/account'
 });
 
 app.service('MagicMikeService', 
@@ -2142,9 +2843,38 @@ app.service('MagicMikeService',
         $location.search(searchparams);
     };
 
+    this.OnCompleteRegistration = function() {
+        if(this.redirect) {
+            $location.url(redirect);
+        }
+    };
+
+    this.RouteToAccountPicker = function() {
+        $location.url(MagicMikeAPI.AccountPicker).search(null);
+    };
+
+    this.RouteToEmployerRegistration = function(redirect) {
+        this.redirect = this.redirect ? $location.url() : null;
+        $location.url(MagicMikeAPI.LocationEmployerRegistration).search(null);
+    };
+
+    this.RouteToJobseekerRegistration = function(redirect) {
+        this.redirect = this.redirect ? $location.url() : null;
+        $location.url(MagicMikeAPI.LocationJobseekerRegistration).search(null);
+    };
+
     this.RouteToJobSearchResults = function(availability, location_name, location_lat, location_lon, page) {
-        $location.path(MagicMikeAPI.LocationJobSearchResults);
+        $location.url(MagicMikeAPI.LocationJobSearchResults);
         this.SearchToJobSearchResults(availability, location_name, location_lat, location_lon, page);
+    };
+
+    this.RouteToHome = function() {
+        $location.url(MagicMikeAPI.LocationHome).search(null);
+    };
+
+    this.RouteToJobSearch = function() {
+        console.log("routing to jobsearch");
+        $location.url(MagicMikeAPI.LocationJobSearchResults).search(null);
     };
 
     this.RouteToEmployerJob = function(id) {
@@ -2154,11 +2884,19 @@ app.service('MagicMikeService',
         }
 
         if(params) {
-            $location.path(MagicMikeAPI.LocationEmployerJob).search(params);
+            $location.url(MagicMikeAPI.LocationEmployerJob).search(params);
         }
         else {
-            $location.path(MagicMikeAPI.LocationEmployerJob);
+            $location.url(MagicMikeAPI.LocationEmployerJob).search(null);
         }
+    };
+
+    this.RouteToEmployerDashboard = function() {
+        $location.url(MagicMikeAPI.LocationEmployerDashboard).search(null);
+    };
+
+    this.RouteToJobseekerDashboard = function() {
+        $location.url(MagicMikeAPI.LocationJobseekerDashboard).search(null);
     };
 
     this.PerformSearch = function(searchParams) {
@@ -2187,6 +2925,170 @@ app.service('MagicMikeService',
         });
         return deferred.promise;
     };
+
+    this.LoadJobSeekerDashboard = function(page, type) {
+        var deferred = $q.defer();
+
+        var failMsg = 'Sorry your dashboard is not available at the moment. Please try again later.';
+
+        var typestr = '';
+        if(type === MagicMikeAPI.JobSourceApplication) {
+            typestr = 'Applied';
+        }
+        else if(type === MagicMikeAPI.JobSourceInvite) {
+            typestr = 'Invited';
+        }
+        var config = {
+            method: MagicMikeAPI.POST,
+            data : {
+                page : page,
+                type : typestr
+            },
+            url : MagicMikeAPI.JobseekerJobs
+        };
+        console.log(config);
+        var promise = $http(config);
+        promise.success(function(data, status, headers, config) {
+            console.log('LoadJobSeekerDashboard');
+            console.log(data);
+            if(!data.ok) {
+                deferred.reject(failMsg);
+            }
+            else {
+                deferred.resolve(data.result);
+            }
+        });
+        promise.error(function(data, status, headers, config) {
+            deferred.reject(failMsg);
+        }); 
+
+        return deferred.promise;
+    };
+
+    this.SubmitJobApplication = function(application) {
+        var deferred = $q.defer();
+
+        var failMsg = "Sorry, you application could not be submitted. Please try again later.";
+        var errorMsg = "Your application had some problems. Please check and submit again.";
+
+        var config = {
+            method: MagicMikeAPI.POST,
+            url: MagicMikeAPI.JobApplication, 
+            data: application
+        };
+        var promise = $http(config);
+        promise.success(function(data, status, headers, config) {
+            if(!data.ok) {
+                deferred.reject({errors: null, errmsg : failMsg});
+            }
+            else if(data.result.errors){
+                deferred.reject({errors: data.result.errors, errmsg : errorMsg});
+            }
+            else {
+                deferred.resolve();
+            }
+        });
+        promise.error(function(data, status, headers, config) {
+            deferred.reject({errors: null, errmsg : failMsg});
+        });
+
+        return deferred.promise;
+    };
+
+    this.LoadJobPostForEdit = function(id) {
+        var deferred = $q.defer();
+        var config = {
+            method: MagicMikeAPI.POST,
+            url: MagicMikeAPI.GetJobPostForEdit, 
+            data: {
+                jobid : id
+            }
+        };
+        var promise = $http(config);
+        promise.success(function(data, status, headers, config) {
+            console.log(data);
+            if(!data.ok) {
+                if(data.result === 'INVALID_EDITPOST_INVALIDJOB') {
+                    deferred.reject('Sorry that is not a valid job post.');
+                }
+                else if(data.result === 'INVALID_EDITPOST_EXPIRED') {
+                    deferred.reject('Sorry that jobpost is already expired, it cannot be updated.');
+                }
+                else {
+                    deferred.reject('Sorry that jobpost is not available. Please try again later');
+                }
+            }
+            else {
+                deferred.resolve(data.result);
+            }
+        });
+        promise.error(function(data, status, headers, config) {
+            deferred.reject('Sorry that jobpost is not available. Please try again later');
+        });
+        return deferred.promise;
+    };
+
+    this.UploadJobPost = function(jobpost) {
+        var deferred = $q.defer();
+        var config = {
+            method: MagicMikeAPI.POST,
+            url: MagicMikeAPI.UploadJobPost, 
+            data: jobpost
+        };
+        var promise = $http(config);
+        promise.success(function(data, status, headers, config) {
+            if(!data.ok) {
+                if(data.result === 'INVALID_EDITPOST_INVALIDJOB') {
+                    deferred.reject({errors: null, errmsg : 'Sorry that is not a valid job post.'});
+                }
+                else if(data.result === 'INVALID_EDITPOST_EXPIRED') {
+                    deferred.reject({errors: null, errmsg : 'Sorry that jobpost is already expired, it cannot be updated.'});
+                }
+                else{
+                    deferred.reject({errors: null, errmsg : 'Sorry that jobpost is not available. Please try again later'});
+                }
+            }
+            else if(data.result.errors){
+                deferred.reject({errors: data.result.errors, errmsg : 'Your submission had some errors, please check and resubmit.'});
+            }
+            else {
+                deferred.resolve();
+            }
+        });
+        promise.error(function(data, status, headers, config) {
+            deferred.reject({errors: null, errmsg : 'Sorry that jobpost is not available. Please try again later'});
+        });
+        return deferred.promise;
+    };
+
+    this.LoadJobForUserView = function(id, availability) {
+        var deferred = $q.defer();
+        var config = {
+            method: MagicMikeAPI.POST,
+            url: MagicMikeAPI.JobView,
+            data: {
+                jobid : id,
+                availability : availability
+            }
+        };
+        var promise = $http(config);
+        console.log('LoadJobForUserView');
+        console.log(config);
+        promise.success(function(data, status, headers, config) {
+            console.log(data);
+            if(!data.ok) {
+                deferred.reject();
+            }
+            else {
+                deferred.resolve(data.result);
+            }
+        });
+        promise.error(function(data, status, headers, config) {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
 }]);
+
 
 })();

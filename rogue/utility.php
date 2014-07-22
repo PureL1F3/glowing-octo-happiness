@@ -84,7 +84,7 @@ function get_empty_availability($days, $periods) {
         $availability[$i] = array();
         for($j = 0; $j < $periods; $j++)
         {
-            $availability[$i][$j] = true;
+            $availability[$i][$j] = false;
         }
     }
 

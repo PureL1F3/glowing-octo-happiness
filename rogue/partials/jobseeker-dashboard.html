@@ -1,25 +1,26 @@
 <h2 class="text-center">My Jobs<button type="button" class="btn btn-success pull-right" ng-click="OnFindJobs()">Find Jobs</button></h2>
 <div class="btn-group btn-group-justified">
   <div class="btn-group">
-    <button type="button" class="btn btn-success" ng-click="OnShowJobs('Applied')" style="color: #3c763d; background-color:#dff0d8;">Applied<br>{{MyJobs.total_applied}}</button>
+    <button type="button" class="btn btn-success" ng-click="OnShowJobs(MagicMikeAPI.JobSourceApplication)" style="color: #3c763d; background-color:#dff0d8;">Applied<br>{{MyJobs.total_applied}}</button>
   </div>
   <div class="btn-group">
-    <button type="button" class="btn btn-danger" ng-click="OnShowJobs('Invited')" style="color: #a94442; background-color: #f2dede;">Invitations<br>{{MyJobs.total_invitations}}</button>
+    <button type="button" class="btn btn-danger" ng-click="OnShowJobs(MagicMikeAPI.JobSourceInvite)" style="color: #a94442; background-color: #f2dede;">Invitations<br>{{MyJobs.total_invitations}}</button>
   </div>
 </div>
-<div class="panel" ng-class="{ 'panel-success' : IsJobs('Applied'), 'panel-danger' : IsJobs('Invited') }" id="top">
+<div class="panel" ng-class="{ 'panel-success' : IsJobs(MagicMikeAPI.JobSourceApplication), 'panel-danger' : IsJobs(MagicMikeAPI.JobSourceInvite) }" id="top">
     <div class="panel-heading">
         <h3 class="panel-title">
-            {{MyJobs.jobs.type}}
+            <span ng-show="IsJobs(MagicMikeAPI.JobSourceApplication)">Applied Jobs</span>
+            <span ng-show="IsJobs(MagicMikeAPI.JobSourceInvite)">Job Application Invites</span>
             <span class="pull-right" ng-show="MyJobs.jobs"><small style="color: #bdc3c7;">{{MyJobs.jobs.start}} to {{MyJobs.jobs.end}} of {{MyJobs.jobs.total}}</small></span>
         </h3>
     </div>
     <ul class="list-group" ng-show="MyJobs.jobs.total===0">
-        <li class="list-group-item" ng-show="IsJobs('Applied')">You don't have any Job Applications yet.</li>
-        <li class="list-group-item" ng-show="IsJobs('Invited')">You don't have any Job Application Invitations yet.</li>
+        <li class="list-group-item" ng-show="IsJobs(MagicMikeAPI.JobSourceApplication)">You don't have any Job Applications yet.</li>
+        <li class="list-group-item" ng-show="IsJobs(MagicMikeAPI.JobSourceInvite)">You don't have any Job Application Invitates yet.</li>
     </ul>
     <div class="list-group" ng-show="MyJobs.jobs.items">
-        <a href="#/viewjob/{{Job.jobid}}" class="list-group-item" ng-repeat="Job in MyJobs.jobs.items">
+        <a href="#/job?i={{Job.jobid}}&s={{JobTypes}}" class="list-group-item" ng-repeat="Job in MyJobs.jobs.items">
             <h4 style="margin-top: 5px; margin-bottom: 1px; color: #03AB52; font-weight: normal;"><u>{{Job.title}}</u>
                 <span class="label label-danger pull-right" ng-show="Job.expired">Expired</span>
                 <span class="label label-success pull-right" ng-hide="Job.expired">Active</span>
@@ -27,12 +28,12 @@
             <h5 style="margin-top: 5px; margin-bottom: 1px;">{{Job.employer}}</h5>
             <p>
 
-                <small ng-show="IsJobs('Applied')" style="color: #bdc3c7;">
+                <small ng-show="IsJobs(MagicMikeAPI.JobSourceApplication)" style="color: #bdc3c7;">
                     Applied
                     <span ng-show="Job.applied_days===0">today</span>
                     <span ng-hide="Job.applied_days===0">{{Job.applied_days}} days ago</span>
                 </small>
-                <small ng-show="IsJobs('Invited')" style="color: #bdc3c7;">
+                <small ng-show="IsJobs(MagicMikeAPI.JobSourceInvite)" style="color: #bdc3c7;">
                     Posted
                     <span ng-show="Job.posted_days===0">today</span>
                     <span ng-hide="Job.posted_days===0">{{Job.posted_days}} days ago</span>
@@ -40,16 +41,16 @@
                 <br>
                 <!-- show job match stars -->
                 <img src="icons/rogue_star.png" style="width: 16px; height: 16px;" 
-                    ng-repeat="t in GetSolidStarCount(Job.hours_match, Job.hours_total) track by $index"/><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
-                    ng-repeat="u in GetEmptyStarCount(Job.hours_match, Job.hours_total) track by $index "/>
+                    ng-repeat="t in SHUtility.GetSolidStarCount(Job.hours_match, Job.hours_total) track by $index"/><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
+                    ng-repeat="u in SHUtility.GetEmptyStarCount(Job.hours_match, Job.hours_total) track by $index "/>
                 <small>Job Hours Match - <span ng-hide="Job.hours_match && Job.hours_total">N/A</span>
                                          <span ng-show="Job.hours_match && Job.hours_total">({{Job.hours_match}} / {{Job.hours_total}})</span>
                 </small>
                 <br>
                 <!-- show job availability coverage stars -->
                 <img src="icons/rogue_star.png" style="width: 16px; height: 16px;" 
-                    ng-repeat="t in GetSolidStarCount(Job.hours_match, Job.hours_available) track by $index"/><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
-                    ng-repeat="u in GetEmptyStarCount(Job.hours_match, Job.hours_available) track by $index "/>
+                    ng-repeat="t in SHUtility.GetSolidStarCount(Job.hours_match, Job.hours_available) track by $index"/><img ng-src="icons/rogue_star_empty.png" style="width: 16px; height: 16px;" 
+                    ng-repeat="u in SHUtility.GetEmptyStarCount(Job.hours_match, Job.hours_available) track by $index "/>
                 <small>Availability Coverage - <span ng-hide="Job.hours_match && Job.hours_available">N/A</span>
                                          <span ng-show="Job.hours_match && Job.hours_available">({{Job.hours_match}} / {{Job.hours_available}})</span>
                 </small>

@@ -6,9 +6,12 @@
     </div>
     <div class="panel-body">
         <form ng-submit="SubmitJobPost()" novalidate>
+            <p>
+                {{Jobpost | json}}
+            </p>
             <div class="form-group" ng-class="{ 'has-error' : FormError.location }">
                 <label>Postal Code</label>
-                <button ng-show="LocationAvailable" type="button" class="btn btn-info btn-sm pull-right" ng-click="GetLocation()">Use my location</button>
+                <button ng-show="LocationAvailable" type="button" ng-disabled="LoadingLocationMessage" class="btn btn-info btn-sm pull-right" ng-click="OnGetLocation()">Use my location</button>
                 <input type="text" maxlength="10" class="form-control" ng-model="Jobpost.location.name" />
                 <p ng-show="FormError.location" class="help-block">{{FormError.location}}</p>
                 <p ng-show="LoadingLocationMessage" class="help-block">{{LoadingLocationMessage}}</p>
@@ -42,6 +45,10 @@
             </div>
             <div class="form-group" ng-class="{ 'has-error' : FormError.availability }">
                 <label>Availability</label>
+                <span class="pull-right">
+                    <button ng-click="StaticAPI.FillAvailability(true, Jobpost.availability)" type="button" class="btn btn-sm btn-success">&nbsp;Full&nbsp;</button>
+                    <button ng-click="StaticAPI.FillAvailability(false, Jobpost.availability)" type="button" class="btn btn-sm btn-danger">Clear</button>
+                </span>
                 <p ng-show="FormError.availability" class="help-block">{{FormError.availability}}</p>
                 <table class="table table-bordered table-condensed table-striped text-center">
                     <tr>

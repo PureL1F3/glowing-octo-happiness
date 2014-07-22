@@ -319,6 +319,25 @@ class StreamHireDB
         return $this->result(true, $value);
     }
 
+    function update_jobpost($userid, $jobid, $job_location_name, $job_location_lat, 
+        $job_location_lon, $job_employer, $job_title, $job_description, 
+        $job_function, $job_type, $job_externalurl, $total_hours)
+    {
+        syslog(LOG_INFO, "Calling StreamHireDB:update_jobpost"); 
+        $sql_job_location_name = $this->_con->real_escape_string($job_location_name);
+        $sql_job_employer = $this->_con->real_escape_string($job_employer);
+        $sql_job_title = $this->_con->real_escape_string($job_title);
+        $sql_job_description = $this->_con->real_escape_string($job_description);
+        $sql_job_externalurl = $this->_con->real_escape_string($job_externalurl);
+        $sql = "CALL update_jobpost($userid, $jobid, '$sql_job_location_name', $job_location_lat, $job_location_lon, '$sql_job_employer', '$sql_job_title', '$sql_job_description', $job_function, $job_type, '$sql_job_externalurl', $total_hours);";
+        $result = $this->_con->query($sql);
+        if(!$result)
+        {
+            return $this->mysql_error();
+        }
+        return $this->result(true);
+    }
+
     function create_jobpost_availability($jobid, $availability, $AvailabilityDays_count, $AvailabilityCategories_count)
     {
         syslog(LOG_INFO, "Calling StreamHireDB:create_jobpost_availability"); 
@@ -579,7 +598,7 @@ class StreamHireDB
             $availability_clause = rtrim($availability_clause_days, ",");
             $availability_clause = "(select jobid, count(hour) match_hours " .
                                     "from jobpost_availability where " . $availability_clause . 
-                                    ") ja on j.id=ja.jobid ";
+                                    " group by jobid) ja on j.id=ja.jobid ";
         }
 
         $keyword_clause = "";
@@ -640,7 +659,7 @@ class StreamHireDB
             $sql .= " and " . $keyword_clause;
         }
 
-        $sql .= "order by match_hours desc limit $offset, $limit;";
+        $sql .= "order by match_hours desc, j.total_hours limit $offset, $limit;";
         return $sql;
     }
 
@@ -1392,7 +1411,7 @@ syslog(LOG_INFO, $sql);
     function get_jobpost_complete($userid, $jobid) {
         //jobpost has to be active - this is used to get jobpost to edit it
         $sql = "select j.id, e.name employer, j.title, j.description, j.location, j.lat, j.lon, " .
-            "j.type, j.function, j.external_url from jobpost j " .
+            "j.type, j.function, j.external_url, now() > j.expires expired from jobpost j " .
             "join employer e on j.employerid=e.userid " .
             "where e.userid=$userid and j.id=$jobid and NOW() < j.expires;";
         $result = $this->_con->query($sql);
@@ -1404,19 +1423,20 @@ syslog(LOG_INFO, $sql);
         if($object = $result->fetch_object())
         {
             $jobpost = array(
-                'id' => $object->id,
+                'id' => intval($object->id),
                 'employer' => $object->employer,
                 'title' => $object->title,
                 'description' => $object->description,
                 'location' => array(
                     'name' => $object->location,
-                    'lat' => $object->lat,
-                    'lon' => $object->lon,
+                    'lat' => floatval($object->lat),
+                    'lon' => floatval($object->lon),
                     ),
-                'jobtype' => $object->type,
-                'jobfunction' => $object->function,
+                'jobtype' => intval($object->type),
+                'jobfunction' => intval($object->function),
                 'externalurl' => $object->external_url,
-                'applicationtype' => (is_null($object->external_url) || strlen($object->external_url) == 0)
+                'applicationtype' => !(is_null($object->external_url) || strlen($object->external_url) == 0),
+                'expired' => $object->expired == 1
                 );
         }
         return $this->result(true, $jobpost);

@@ -81,7 +81,6 @@ if($type == 'Applied') {
             finish(false, TECH_ISSUE);
         }
         $stats = $result['result'];
-        var_dump($applications);
         foreach($applicationids as $j) {
             $applications[$j]['hours_total'] = $stats[$j]['job_hours'];
             $applications[$j]['hours_match'] = $stats[$j]['match_hours'];
